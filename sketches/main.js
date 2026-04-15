@@ -7,11 +7,14 @@ we use the following states:
 generate -> wait -> evaluate -> result -> if right: go to generate; else if wrong: go to wait.
 */
 let state = "null";
+let p_state = state;
 
+//text to speech stuff:
 let speech;
-
 //dialogues are a 2-dimensional array. with each stage, you can pick a random dialogue.
 let dialogues = [["guess this stupid word"]];
+
+let input_str;
 
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
@@ -20,40 +23,80 @@ function setup() {
   speech = new p5.Speech();
 
   //assign a random voice. we wait a little bit to run this block of code for it to get all the voices.
-  setTimeout(() => {
-    let all_voices = speech.voices;
-    let voice = Math.floor(random(all_voices.length));
-    speech.setVoice(voice);
-    console.log("current voice:", all_voices[voice].name);
-  }, 500);
+  // setTimeout(() => {
+  //   let all_voices = speech.voices;
+  //   let voice = Math.floor(random(all_voices.length));
+  //   speech.setVoice(voice);
+  //   console.log("current voice:", all_voices[voice].name);
+  // }, 500);
 }
 
 function draw() {
   background(0);
 
   if (state === "generate") {
-    state = "loading"; //temp state to avoid looping.
+    state = "temp-hold"; //temp state to avoid looping multiple times (because it's in draw).
+
     fetch_word().then((result) => {
       word = result;
       console.log(word);
     });
 
-    // speech.speak(dialogues[0][0]);
+    //say dialogue:
+    speech.speak(dialogues[0][0]);
 
-    speech.speak("set"); 
-
+    //state change:
     state = "await";
+
+    //prepare input string:
+    input_str = "";
   } else if (state === "await") {
+    // state = "temp-hold"; //temp state to avoid looping multiple times (because it's in draw).
+
+    //wait for user input.
+    console.log(input_str.length);
+
+    if (input_str.length === 5) {
+      //when it is 5, go to evaluate.
+      state = "evaluate";
+    }
   } else if (state === "evaluate") {
+    let result = [];
+
+    for (let i = 0; i < 5; i++) {
+      let c = input_str[i];
+
+      if (c === word[i]) {
+        result[i] = "correct";
+      } else if (word.includes(c)) {
+        result[i] = "wrong-pos";
+      } else {
+        result[i] = "wrong";
+      }
+    }
+
+    console.log(result);
+
+    state = "result";
   } else if (state === "result") {
   }
 
-  // console.log(state); 
+  if (state != p_state) {
+    console.log(state);
+  }
+
+  p_state = state;
 }
 
 function mousePressed() {
   //text to speech needs a user-action to begin everything. so, we keep this to start.
-  state="generate"; 
+  state = "generate";
+}
+
+function keyPressed() {
+  if (state === "await") {
+    input_str += key;
+  }
 }
 
 async function fetch_word() {
