@@ -1,0 +1,1 @@
+- chrome blocks audio unless it is clicked. 
