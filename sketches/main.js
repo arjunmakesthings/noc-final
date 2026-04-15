@@ -6,17 +6,26 @@ let word;
 we use the following states: 
 generate -> wait -> evaluate -> result -> if right: go to generate; else if wrong: go to wait.
 */
-let state = "generate";
+let state = "null";
 
 let speech;
 
-let dialogues = ["guess this stupid word"];
+//dialogues are a 2-dimensional array. with each stage, you can pick a random dialogue.
+let dialogues = [["guess this stupid word"]];
 
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
   createCanvas(800, 800); //square to handle calculations better.
 
   speech = new p5.Speech();
+
+  //assign a random voice. we wait a little bit to run this block of code for it to get all the voices.
+  setTimeout(() => {
+    let all_voices = speech.voices;
+    let voice = Math.floor(random(all_voices.length));
+    speech.setVoice(voice);
+    console.log("current voice:", all_voices[voice].name);
+  }, 500);
 }
 
 function draw() {
@@ -29,16 +38,23 @@ function draw() {
       console.log(word);
     });
 
-    speech.speak("guess this stupid word");
+    // speech.speak(dialogues[0][0]);
+
+    speech.speak("set"); 
 
     state = "await";
   } else if (state === "await") {
   } else if (state === "evaluate") {
   } else if (state === "result") {
   }
+
+  // console.log(state); 
 }
 
-function mousePressed() {}
+function mousePressed() {
+  //text to speech needs a user-action to begin everything. so, we keep this to start.
+  state="generate"; 
+}
 
 async function fetch_word() {
   let res = await fetch("https://random-word-api.herokuapp.com/word?length=5");
