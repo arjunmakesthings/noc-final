@@ -55,6 +55,8 @@ function draw() {
   } else if (state === "await") {
     // state = "temp-hold"; //temp state to avoid looping multiple times (because it's in draw).
 
+    show_typing(input_str);
+
     //wait for user input.
     console.log(input_str.length);
 
@@ -79,7 +81,7 @@ function draw() {
 
     console.log(result);
 
-    // show_result(input_str, result); 
+    // show_result(input_str, result);
 
     state = "result";
   } else if (state === "result") {
@@ -95,10 +97,19 @@ function draw() {
   p_state = state;
 }
 
-//shows result on screen.
-function show_result(){
+//show what is being typed.
+function show_typing(input_str) {
+  textSize(24);
+  textAlign(CENTER, CENTER);
 
+  for (let i = 0; i < input_str.length; i++) {
+    fill(255);
+    text(input_str[i], width / 2 - 100 + i * 50, height - 100);
+  }
 }
+
+//shows result on screen.
+function show_result() {}
 
 function mousePressed() {
   //text to speech needs a user-action to begin everything. so, we keep this to start.
@@ -116,7 +127,7 @@ async function fetch_word() {
   let data = await res.json();
   word = data[0];
 
-  console.log("og word -> " + word); 
+  console.log("og word -> " + word);
 
   //garble the word:
   let chars = word.split("");
