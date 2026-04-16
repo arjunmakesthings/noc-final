@@ -16,7 +16,7 @@ let dialogues = [["guess this stupid word"]];
 
 let input_str;
 
-let result =[]; 
+let result = [];
 
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
@@ -41,7 +41,7 @@ function draw() {
 
     fetch_word().then((result) => {
       word = result;
-      console.log(word);
+      console.log("garbled word -> " + word);
     });
 
     //say dialogue:
@@ -79,18 +79,25 @@ function draw() {
 
     console.log(result);
 
+    // show_result(input_str, result); 
+
     state = "result";
   } else if (state === "result") {
-    for (let i = 0; i<result.length; i++){
-      // if 
+    for (let i = 0; i < result.length; i++) {
+      // if
     }
   }
 
   if (state != p_state) {
-    console.log(state);
+    console.log("state -> " + state);
   }
 
   p_state = state;
+}
+
+//shows result on screen.
+function show_result(){
+
 }
 
 function mousePressed() {
@@ -108,6 +115,8 @@ async function fetch_word() {
   let res = await fetch("https://random-word-api.herokuapp.com/word?length=5");
   let data = await res.json();
   word = data[0];
+
+  console.log("og word -> " + word); 
 
   //garble the word:
   let chars = word.split("");
