@@ -12,11 +12,13 @@ let p_state = state;
 //text to speech stuff:
 let speech;
 //dialogues are a 2-dimensional array. with each stage, you can pick a random dialogue.
-let dialogues = [["guess this stupid word"]];
+let dialogues = [["guess this stupid word"], ["god you're so stupid"]];
 
 let input_str;
 
 let result = [];
+
+let attempts = [];
 
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
@@ -35,6 +37,10 @@ function setup() {
 
 function draw() {
   background(0);
+
+  for (let i = 0; i < attempts.length; i++) {
+    attempts[i].display();
+  }
 
   if (state === "generate") {
     state = "temp-hold"; //temp state to avoid looping multiple times (because it's in draw).
@@ -57,9 +63,6 @@ function draw() {
 
     show_typing(input_str);
 
-    //wait for user input.
-    console.log(input_str.length);
-
     if (input_str.length === 5) {
       //when it is 5, go to evaluate.
       state = "evaluate";
@@ -81,13 +84,17 @@ function draw() {
 
     console.log(result);
 
-    // show_result(input_str, result);
+    attempts.push(new Attempt(input_str, result));
 
     state = "result";
   } else if (state === "result") {
-    for (let i = 0; i < result.length; i++) {
-      // if
-    }
+
+    
+    speech.speak(dialogues[1][0]);
+
+    //reset input.
+    input_str = ""; 
+    state = "await"; 
   }
 
   if (state != p_state) {
@@ -137,4 +144,29 @@ async function fetch_word() {
   }
 
   return chars.join("");
+}
+
+class Attempt {
+  constructor(word, result) {
+    this.word = word;
+    this.result = result;
+  }
+
+  display() {
+    let index = attempts.indexOf(this);
+    let y = 100 + index * 60;
+
+    textSize(32);
+    textAlign(CENTER, CENTER);
+
+    for (let i = 0; i < this.word.length; i++) {
+      let x = width / 2 - 100 + i * 50;
+
+      if (this.result[i] === "correct") fill(0, 255, 0);
+      else if (this.result[i] === "wrong-pos") fill(255, 200, 0);
+      else fill(80);
+
+      text(this.word[i], x, y);
+    }
+  }
 }
