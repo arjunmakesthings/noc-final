@@ -16,6 +16,8 @@ let dialogues = [["guess this stupid word"]];
 
 let input_str;
 
+let result =[]; 
+
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
   createCanvas(800, 800); //square to handle calculations better.
@@ -61,7 +63,7 @@ function draw() {
       state = "evaluate";
     }
   } else if (state === "evaluate") {
-    let result = [];
+    result = [];
 
     for (let i = 0; i < 5; i++) {
       let c = input_str[i];
@@ -79,6 +81,9 @@ function draw() {
 
     state = "result";
   } else if (state === "result") {
+    for (let i = 0; i<result.length; i++){
+      // if 
+    }
   }
 
   if (state != p_state) {
