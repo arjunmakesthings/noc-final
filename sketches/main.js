@@ -4,15 +4,35 @@ let word;
 
 /* 
 we use the following states: 
-generate -> wait -> evaluate -> result -> if right: go to generate; else if wrong: go to wait.
+generate -> await -> evaluate -> result -> if right: go to generate; else if wrong: go to wait.
 */
 let state = "null";
 let p_state = state;
 
 //text to speech stuff:
 let speech;
-//dialogues are a 2-dimensional array. with each stage, you can pick a random dialogue.
-let dialogues = [["guess this stupid word"], ["god you're so stupid"]];
+
+//dialogues are in key-value pairs.
+let dialogues = {
+  in_generate: [
+    "guess this stupid word",
+    "hey you — guess the word i'm thinking of",
+  ],
+  in_await: [],
+  in_evaluate: [],
+  all_correct: ["ok ... now"],
+  some_correct: [
+    "nooooo, try again",
+    "ugh no you idiot",
+    "god no",
+    "close but not quite",
+  ],
+  all_wrong: [
+    "god you're so dumb",
+    "no you idiot",
+    "stupid shit work ... try again and do better",
+  ],
+};
 
 let input_str;
 
@@ -45,13 +65,16 @@ function draw() {
   if (state === "generate") {
     state = "temp-hold"; //temp state to avoid looping multiple times (because it's in draw).
 
+    //clear previous attempts.
+    attempts = []; 
+
     fetch_word().then((result) => {
       word = result;
       console.log("garbled word -> " + word);
     });
 
     //say dialogue:
-    speech.speak(dialogues[0][0]);
+    speech.speak(random(dialogues.in_generate));
 
     //state change:
     state = "await";
@@ -88,19 +111,31 @@ function draw() {
 
     state = "result";
   } else if (state === "result") {
+    let correct = result.filter((r) => r === "correct").length;
+    let wrong_pos = result.filter((r) => r === "wrong-pos").length;
+    let wrong_char = result.filter((r) => r === "wrong").length;
 
-    
-    speech.speak(dialogues[1][0]);
+    let dominant = Math.max(correct, wrong_pos, wrong_char);
+
+    if (dominant === correct) {
+      speech.speak(random(dialogues.all_correct));
+      state = "generate";
+    } else if (dominant === wrong_char) {
+      speech.speak(random(dialogues.all_wrong));
+      state = "await";
+    } else {
+      speech.speak(random(dialogues.some_correct));
+      state = "await";
+    }
 
     //reset input.
-    input_str = ""; 
-    state = "await"; 
+    input_str = "";
   }
 
+  //state change:
   if (state != p_state) {
     console.log("state -> " + state);
   }
-
   p_state = state;
 }
 
@@ -114,9 +149,6 @@ function show_typing(input_str) {
     text(input_str[i], width / 2 - 100 + i * 50, height - 100);
   }
 }
-
-//shows result on screen.
-function show_result() {}
 
 function mousePressed() {
   //text to speech needs a user-action to begin everything. so, we keep this to start.
