@@ -15,8 +15,8 @@ let speech;
 //dialogues are in key-value pairs.
 let dialogues = {
   in_generate: [
-    "guess this stupid word",
-    "hey you — guess the word i'm thinking of",
+    "computer, guess this stupid word",
+    "hey you computer — guess the word i'm thinking of",
   ],
   in_await: [],
   in_evaluate: [],
@@ -42,7 +42,7 @@ let attempts = [];
 
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
-  createCanvas(800, 800); //square to handle calculations better.
+  createCanvas(windowWidth, windowHeight); //square to handle calculations better.
 
   speech = new p5.Speech();
 
@@ -58,6 +58,17 @@ function setup() {
 function draw() {
   background(0);
 
+  push();
+  textAlign (LEFT, TOP);  
+  textSize(16);
+  fill(255);
+  text("you're trying to guess a 5-letter word.", 50, 50);
+  fill(255, 200, 0);
+  text("yellow means right character; but wrong position.", 50, 50 + 28);
+  fill(0, 255, 0);
+  text("green means correct guess.", 50, 50 + 28 * 2);
+  pop(); 
+
   for (let i = 0; i < attempts.length; i++) {
     attempts[i].display();
   }
@@ -66,7 +77,7 @@ function draw() {
     state = "temp-hold"; //temp state to avoid looping multiple times (because it's in draw).
 
     //clear previous attempts.
-    attempts = []; 
+    attempts = [];
 
     fetch_word().then((result) => {
       word = result;
@@ -141,7 +152,7 @@ function draw() {
 
 //show what is being typed.
 function show_typing(input_str) {
-  textSize(24);
+  textSize(48);
   textAlign(CENTER, CENTER);
 
   for (let i = 0; i < input_str.length; i++) {
@@ -176,6 +187,12 @@ async function fetch_word() {
   }
 
   return chars.join("");
+
+  // //temp fallback:
+
+  // let temp_word = random(["pplea", "ppyah"]);
+
+  // return temp_word;
 }
 
 class Attempt {
@@ -188,7 +205,7 @@ class Attempt {
     let index = attempts.indexOf(this);
     let y = 100 + index * 60;
 
-    textSize(32);
+    textSize(48);
     textAlign(CENTER, CENTER);
 
     for (let i = 0; i < this.word.length; i++) {
@@ -196,7 +213,7 @@ class Attempt {
 
       if (this.result[i] === "correct") fill(0, 255, 0);
       else if (this.result[i] === "wrong-pos") fill(255, 200, 0);
-      else fill(80);
+      else fill(120);
 
       text(this.word[i], x, y);
     }
