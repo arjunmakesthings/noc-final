@@ -23,11 +23,24 @@ let human;
 let machine;
 let host;
 
+let human_to_guess_word;
+let machine_to_guess_word;
+
 let global_state = "null";
-let p_global_state = global_state; //for state change detection.
+let p_global_state = "null"; //for state change detection.
+
+let all_words;
+
+function preload() {
+  all_words = loadJSON("./words.json");
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  //fix words to an array of 5-char words:
+  all_words = Object.values(all_words);
+  all_words = all_words.filter((w) => w.length === 5);
 
   host = new Host();
   machine = new Machine();
@@ -41,9 +54,21 @@ function draw() {
   machine.state_manager();
   human.state_manager();
 
-  if (global_state == "generate") {
-    background(255);
+  if (p_global_state != global_state) {
+    //state change has happened.
+    if (global_state == "generate") {
+      human_to_guess_word = fetch_word();
+      machine_to_guess_word = fetch_word();
+      global_state = "await";
+    } else if (global_state == "await") {
+    }
   }
+  p_global_state = global_state;
+}
+
+//helper to generate word:
+function fetch_word() {
+  return random(all_words);
 }
 
 function ui() {
@@ -53,24 +78,21 @@ function ui() {
 function keyPressed() {}
 
 function mousePressed() {
-  //to initialize everything, since chrome needs user-input to start sound playback.
-  host.local_state = "welcome";
+  if (global_state == "null") {
+    //to initialize everything, since chrome needs user-input to start sound playback.
+    host.local_state = "welcome";
+  }
 }
 
 class Human {
   constructor() {
     this.local_state = "null";
-    this.p_state = "null2";
   }
 
   state_manager() {
-    if (this.local_state != this.p_state) {
-      //a state change has happened.
-      if (this.local_state == "await_begin") {
-        this.await_begin();
-      }
+    if (this.local_state == "await_begin") {
+      this.await_begin();
     }
-    this.p_state = this.local_state;
   }
 
   await_begin() {
@@ -81,6 +103,7 @@ class Human {
       this.readyBtn.mousePressed(() => {
         global_state = "generate";
         this.readyBtn.remove();
+        this.local_state = null;
         this.readyBtn = null;
       });
     }
@@ -93,17 +116,13 @@ class Machine {
     this.speech.setRate(0.9);
 
     this.local_state = "null";
-    this.p_state = "null2";
   }
 
   state_manager() {
-    if (this.local_state != this.p_state) {
-      //a state change has happened.
-      if (this.local_state == "ready") {
-        this.speech.speak("i'm ready. i'm going to take you down.");
-      }
+    if (this.local_state == "ready") {
+      this.speech.speak("i'm ready. i'm going to take you down.");
+      this.local_state = "null";
     }
-    this.p_state = this.local_state;
   }
 }
 
@@ -114,16 +133,12 @@ class Host {
     // this.speech.setVoice("Fred");
 
     this.local_state = "null";
-    this.p_state = "null2";
   }
   state_manager() {
-    if (this.local_state != this.p_state) {
-      //a state change has happened.
-      if (this.local_state == "welcome") {
-        this.welcome();
-      }
+    if (this.local_state == "welcome") {
+      this.welcome();
+      this.local_state = "null";
     }
-    this.p_state = this.local_state;
   }
 
   welcome() {
