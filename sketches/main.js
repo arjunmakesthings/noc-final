@@ -26,7 +26,7 @@ let host;
 let human_to_guess_word;
 let machine_to_guess_word;
 
-let global_state = "null";
+let global_state = "generate";
 let p_global_state = "null"; //for state change detection.
 
 let all_words;
@@ -54,16 +54,14 @@ function draw() {
   machine.state_manager();
   human.state_manager();
 
-  if (p_global_state != global_state) {
-    //state change has happened.
-    if (global_state == "generate") {
-      human_to_guess_word = fetch_word();
-      machine_to_guess_word = fetch_word();
-      global_state = "await";
-    } else if (global_state == "await") {
-    }
+  if (global_state == "generate") {
+    human_to_guess_word = fetch_word();
+    machine_to_guess_word = fetch_word();
+    global_state = "first_guess";
+  } else if (global_state == "first_guess") {
+    host.local_state = "first_guess";
+    global_state = "null";
   }
-  p_global_state = global_state;
 }
 
 //helper to generate word:
@@ -137,6 +135,10 @@ class Host {
   state_manager() {
     if (this.local_state == "welcome") {
       this.welcome();
+      this.local_state = "null";
+    }
+    if (this.local_state == "first_guess") {
+      this.speech.speak("alright participants ... time for your first guess.");
       this.local_state = "null";
     }
   }
