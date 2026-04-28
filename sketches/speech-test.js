@@ -202,17 +202,16 @@ Google 粤語（香港）
 Google 國語（臺灣）
 
 */
+let dialogs = ["hello", "bye bye"];
 
-let speech;
+let speaker;
+let tog = false;
 
 function setup() {
   // createCanvas(1000, 562); //in 16:9 aspect ratio.
   createCanvas(800, 800); //square to handle calculations better.
 
-  // speech = new p5.Speech("Wobble");
-  speech = new p5.Speech("Boing");
-  speech.setRate(1.0);
-  speech.setPitch(1.3);
+  speaker = new Speaker();
 
   //assign a random voice. we wait a little bit to run this block of code for it to get all the voices.
   // setTimeout(() => {
@@ -225,8 +224,27 @@ function setup() {
 
 function draw() {
   background(0);
+
+  if (frameCount % 60 == 0) {
+    tog = !tog;
+    if (tog == true) {
+      speaker.say("hello", "Fred");
+    } else {
+      speaker.say("hello", "Boing");
+    }
+  }
 }
 
 function mousePressed() {
-  speech.speak("are you ready human? i'm going to take you DOWN!");
+  userStartAudio();
+}
+
+class Speaker {
+  constructor() {
+    this.speech = new p5.Speech();
+  }
+  say(txt, voice) {
+    this.speech.setVoice(voice);
+    this.speech.speak(txt);
+  }
 }
