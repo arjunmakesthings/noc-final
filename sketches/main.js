@@ -58,7 +58,7 @@ function draw() {
   //since draw loops over time, we'll use it as a state change manager.
   if (global_state === "winner_declaration") {
     ui();
-    return; 
+    return;
   }
 
   if (global_state == "welcome") {
@@ -287,7 +287,7 @@ class Human {
 
   think() {
     if (global_state !== "await") return;
-    
+
     if (this.current.length != 5) {
       this.local_state = "thinking";
     } else {
@@ -344,31 +344,44 @@ class Machine {
     this.timer = 0;
     this.reveal_index = 0;
     this.buffer = "";
+
+    this.thinkAnim = [".", "..", "...", ".."];
+    this.thinkFrame = 0;
+    this.lastThinkTick = 0;
   }
 
   think() {
     if (global_state !== "await") return;
 
     // 1. THINKING PHASE (5 sec pause)
+    // 1. THINKING PHASE (5 sec pause + animated dots)
     if (this.phase === "thinking") {
       if (this.timer === 0) {
         this.timer = millis();
-        this.current = "> thinking";
+        this.thinkFrame = 0;
+        this.lastThinkTick = millis();
+        this.current = "thinking";
+      }
+
+      // animate dots every ~400ms
+      if (millis() - this.lastThinkTick > 400) {
+        this.lastThinkTick = millis();
+        this.thinkFrame = (this.thinkFrame + 1) % this.thinkAnim.length;
+        this.current = "thinking " + this.thinkAnim[this.thinkFrame];
       }
 
       if (millis() - this.timer < 5000) return;
 
-      // move to typing
       this.phase = "typing";
       this.timer = millis();
       this.reveal_index = 0;
 
-      this.buffer = this.type(); // generate guess ONCE
+      this.buffer = this.type();
     }
 
     // 2. TYPING PHASE (1 char per second)
     if (this.phase === "typing") {
-      this.current = "> " + this.buffer.slice(0, this.reveal_index);
+      this.current = this.buffer.slice(0, this.reveal_index);
 
       if (millis() - this.timer > 1000) {
         this.timer = millis();
