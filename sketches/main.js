@@ -30,14 +30,22 @@ let dict; //dictionary to store all words.
 let human_to_guess = "apple";
 let machine_to_guess = "mango";
 
+let font;
+
 function preload() {
   dict = loadJSON("./words.json");
+  font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
   dict = Object.values(dict).filter((w) => w.length === 5); //keep 5-letter words.
+
+  //prevent default backspace behaviour:
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace") e.preventDefault();
+  });
 
   human = new Human();
   machine = new Machine();
@@ -53,6 +61,8 @@ function draw() {
   } else if (global_state == "generate") {
     generate();
   } else if (global_state == "await") {
+    human.think();
+    machine.think();
   }
 
   ui();
@@ -106,7 +116,7 @@ function mousePressed() {
   }
 }
 function keyPressed() {
-  if (global_state === "await") {
+  if (human.local_state === "thinking") {
     human.type(key);
   }
 }
@@ -114,40 +124,56 @@ function ui() {
   background(0);
 
   if (global_state == "await") {
+    textFont(font);
     fill(255);
-    textSize(20);
+    textSize(16);
     textAlign(LEFT, TOP);
 
     // left terminal (human)
-    let hx = 50;
-    let hy = 50;
+    let lx = 50;
+    let ly = 50;
 
-    text("human terminal", hx, hy);
+    text("human-representative:", lx, ly);
 
     for (let i = 0; i < human.log.length; i++) {
-      text("> " + human.log[i], hx, hy + 30 + i * 22);
+      text("> " + human.log[i], lx, ly + 30 + i * 22);
     }
 
-    text("> " + human.current, hx, hy + 30 + human.log.length * 22);
+    text("> " + human.current, lx, ly + 30 + human.log.length * 22);
 
     // right terminal (machine placeholder for now)
-    let mx = width / 2 + 50;
-    let my = 50;
+    let rx = width / 2 + 50;
+    let ry = 50;
 
-    text("machine terminal", mx, my);
+    text("machine-representative:", rx, ry);
 
-    text("> " + machine_to_guess, mx, my + 30);
+    for (let i = 0; i < machine.log.length; i++) {
+      text("> " + machine.log[i], rx, ry + 30 + i * 22);
+    }
+
+    text("> " + machine.current, rx, ry + 30 + machine.log.length * 22);
   }
 }
 
 /* actors */
 class Human {
   constructor() {
-    this.current = "";
-    this.log = [];
+    this.current = ""; //current character.
+    this.log = []; //we keep a log of everything the person enters.
     this.sent_word = null;
+
+    this.local_state = "null";
   }
 
+  think() {
+    //the actual thinking human does by itself. we just keep track of the characters.
+    if (this.current.length != 5) {
+      this.local_state = "thinking";
+    } else if (this.current.length === 5) {
+      this.send();
+      this.local_state = "null";
+    }
+  }
   type(key) {
     if (keyCode === BACKSPACE || key === "backspace") {
       this.current = this.current.slice(0, -1);
@@ -157,29 +183,32 @@ class Human {
     if (key.length === 1) {
       this.current += key.toLowerCase();
     }
-
-    if (this.current.length === 5) {
-      this.send();
-    }
   }
-
   send() {
     this.sent_word = this.current;
     this.log.push(this.current);
-    console.log("human sent:", this.sent_word);
 
+    //reset current word, which resets the thinking too.
     this.current = "";
   }
 
+  //master reset if i want multiple rounds:
   reset() {
     this.current = "";
     this.sent_word = null;
     this.log = [];
+    this.state = "idle";
   }
 }
 
 class Machine {
-  constructor() {}
+  constructor() {
+    this.current = ""; //current character.
+    this.log = []; //we keep a log of everything the person enters.
+    this.sent_word = null;
+
+    this.local_state = "null";
+  }
   think() {}
   type() {}
   send() {}
