@@ -154,6 +154,9 @@ function keyPressed() {
 function ui() {
   background(0);
 
+  //global ui: 
+  // text ("who is faster: a human-being or a 1-byte")
+
   if (global_state == "await") {
     textFont(font);
     textSize(16);
