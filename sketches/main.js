@@ -357,6 +357,7 @@ class Machine {
     // 1. THINKING PHASE (5 sec pause + animated dots)
     if (this.phase === "thinking") {
       if (this.timer === 0) {
+        speaker.say("machine", "thinking"); 
         this.timer = millis();
         this.thinkFrame = 0;
         this.lastThinkTick = millis();
