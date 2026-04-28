@@ -16,6 +16,8 @@ welcome (t.a.) -> give word (t.a.) -> await (n.t.) -> declare result (n.t. to pl
 
 a thing i realized after a while is that p5.speech can't be instanced. there has to be a global speaker object. 
 
+another annoying thing that browsers do is force a click to play any sound or do any speech thing. so, to test individual stages, go to the mousePressed function and change state from there (otherwise the audio(s) won't play).  
+
 */
 
 let global_state = "begin";
@@ -23,6 +25,7 @@ let global_state = "begin";
 let human, machine, host, speaker;
 
 let dict; //dictionary to store all words.
+let human_to_guess, machine_to_guess; //vars to store words to guess by both players.
 
 function preload() {
   dict = loadJSON("./words.json");
@@ -44,15 +47,32 @@ function draw() {
 
   if (global_state == "welcome") {
     welcome();
+  } else if (global_state == "generate") {
+    generate();
   }
-  else if (global_state == "generate"){
-    background(255); 
+  else if (global_state == "await"){
+    
   }
 
   ui();
 }
 
 //global functions:
+function generate() {
+  // we will generate the words to guess, and tell the players that they've been given a word.
+  human_to_guess = random(dict);
+  machine_to_guess = random(dict);
+
+  console.log(human_to_guess, machine_to_guess);
+
+  speaker.say(
+    "host",
+    "alright, you two. you've both been assigned a random 5-letter english word. put your thinking caps on — may the quickest win!!!",
+  );
+
+  global_state = "await";
+}
+
 function welcome() {
   // host.speech.speak(
   //   `"welcome puny human ... we've been hearing your declarations on the news about humans being smarter than computers. let's put that to the test now; shall we? ......... you & the machine on your right have been assigned a random 5-letter word. the first one to guess wins ...... are you game? .......,,,, `,
@@ -63,9 +83,7 @@ function welcome() {
   });
   global_state = "null";
 }
-
 let ready_btn;
-
 function show_ready_btn() {
   if (ready_btn) return;
 
@@ -81,10 +99,10 @@ function show_ready_btn() {
 }
 
 function mousePressed() {
-  if (global_state === "begin"){
-  userStartAudio();
-  global_state = "welcome";
-}
+  if (global_state === "begin") {
+    userStartAudio();
+    global_state = "generate";
+  }
 }
 
 function ui() {
@@ -155,7 +173,7 @@ class Speaker {
       this.speech.setRate(0.9);
     } else if (who == "machine") {
       this.speech.setVoice("Boing");
-      this.speech.setRate(1.2);
+      this.speech.setRate(1.1);
       this.speech.setPitch(1.3);
     }
 
