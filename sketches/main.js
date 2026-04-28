@@ -18,7 +18,7 @@ a thing i realized after a while is that p5.speech can't be instanced. there has
 
 */
 
-let global_state = "null";
+let global_state = "begin";
 
 let human, machine, host, speaker;
 
@@ -45,6 +45,9 @@ function draw() {
   if (global_state == "welcome") {
     welcome();
   }
+  else if (global_state == "generate"){
+    background(255); 
+  }
 
   ui();
 }
@@ -55,16 +58,33 @@ function welcome() {
   //   `"welcome puny human ... we've been hearing your declarations on the news about humans being smarter than computers. let's put that to the test now; shall we? ......... you & the machine on your right have been assigned a random 5-letter word. the first one to guess wins ...... are you game? .......,,,, `,
   // );
   speaker.say("host", "welcome ... blah blah ... are you game?");
-  speaker.say("machine", "i'm ready ... i'm going to take you DOWN!");
-
-  speaker.say("host", "alright. both of you have been assigned a 5-letter word");
-
+  speaker.say("machine", "i'm ready ... i'm going to take you DOWN!", () => {
+    show_ready_btn();
+  });
   global_state = "null";
 }
 
+let ready_btn;
+
+function show_ready_btn() {
+  if (ready_btn) return;
+
+  ready_btn = createButton("ready.");
+  ready_btn.position(width / 2 - 40, height / 2);
+
+  ready_btn.mousePressed(() => {
+    ready_btn.remove();
+    ready_btn = null;
+
+    global_state = "generate";
+  });
+}
+
 function mousePressed() {
+  if (global_state === "begin"){
   userStartAudio();
   global_state = "welcome";
+}
 }
 
 function ui() {
@@ -135,7 +155,7 @@ class Speaker {
       this.speech.setRate(0.9);
     } else if (who == "machine") {
       this.speech.setVoice("Boing");
-      this.speech.setRate(1.0);
+      this.speech.setRate(1.2);
       this.speech.setPitch(1.3);
     }
 
