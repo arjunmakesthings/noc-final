@@ -17,18 +17,18 @@ welcome (t.a.) -> give word (t.a.) -> await (n.t.) -> declare result (n.t. to pl
 a thing i realized after a while is that p5.speech can't be instanced. there has to be a global speaker object. 
 
 another annoying thing that browsers do is force a click to play any sound or do any speech thing. so, to test individual stages, go to the mousePressed function and change state from there (otherwise the audio(s) won't play).  
-
 */
 
-let global_state = "begin";
-
-let human, machine, host, speaker;
+let human, machine, host, speaker; //actors. 
 
 let dict; //dictionary to store all words.
-// let human_to_guess, machine_to_guess; //vars to store words to guess by both players.
+// let human_to_guess, machine_to_guess; 
 
+// temp words for testing:
 let human_to_guess = "apple";
 let machine_to_guess = "mango";
+
+let global_state = "begin";
 
 let font;
 
@@ -40,13 +40,14 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  dict = Object.values(dict).filter((w) => w.length === 5); //keep 5-letter words.
+  dict = Object.values(dict).filter((w) => w.length === 5); //keep only 5-character words.
 
-  //prevent default backspace behaviour:
+  //prevent default backspace operation on browsers, since we'll use the backspace.
   window.addEventListener("keydown", (e) => {
     if (e.key === "Backspace") e.preventDefault();
   });
 
+  //make single instances of actors.
   human = new Human();
   machine = new Machine();
   host = new Host();
@@ -54,8 +55,7 @@ function setup() {
 }
 
 function draw() {
-  //draw runs all the time. so we use it as a global state manager.
-
+  //since draw loops over time, we'll use it as a state change manager.
   if (global_state == "welcome") {
     welcome();
   } else if (global_state == "generate") {
@@ -68,9 +68,99 @@ function draw() {
   ui();
 }
 
-//global functions:
+//global helpers:
+function evaluate(str, word) {
+  let result = [];
+
+  for (let i = 0; i < 5; i++) {
+    let c = str[i];
+
+    if (c === word[i]) {
+      result[i] = "correct";
+    } else if (word.includes(c)) {
+      result[i] = "wrong-pos";
+    } else {
+      result[i] = "wrong";
+    }
+  }
+  let correct = result.filter((r) => r === "correct").length;
+  let wrong_pos = result.filter((r) => r === "wrong-pos").length;
+  let wrong_char = result.filter((r) => r === "wrong").length;
+
+  let dominant = Math.max(correct, wrong_pos, wrong_char);
+
+  return {
+    result,
+    correct,
+    wrong_pos,
+    wrong_char,
+    dominant,
+  };
+}
+function mousePressed() {
+  if (global_state === "begin") {
+    userStartAudio();
+    global_state = "await";
+  }
+}
+
+function keyPressed() {
+  if (human.local_state === "thinking") {
+    human.type(key);
+  }
+}
+
+function ui() {
+  background(0);
+
+  if (global_state == "await") {
+    textFont(font);
+    textSize(16);
+    textAlign(LEFT, TOP);
+
+    let lx = 50;
+    let ly = 50;
+
+    fill(255);
+    text("human-representative:", lx, ly);
+
+    let y = ly + 30;
+
+    for (let t = 0; t < human.attempts.length; t++) {
+      let attempt = human.attempts[t];
+
+      for (let i = 0; i < attempt.word.length; i++) {
+        let c = attempt.word[i];
+
+        if (attempt.result[i] === "correct") fill(0, 255, 0);
+        else if (attempt.result[i] === "wrong-pos") fill(255, 200, 0);
+        else fill(120);
+
+        text(c, lx + i * 18, y);
+      }
+
+      y += 28;
+    }
+
+    fill(255);
+    text("> " + human.current, lx, y);
+
+    let rx = width / 2 + 50;
+    let ry = 50;
+
+    fill(255);
+    text("machine-representative:", rx, ry);
+
+    for (let i = 0; i < machine.log.length; i++) {
+      text("> " + machine.log[i], rx, ry + 30 + i * 22);
+    }
+
+    text("> " + machine.current, rx, ry + 30 + machine.log.length * 22);
+  }
+}
+
+//stages:
 function generate() {
-  // we will generate the words to guess, and tell the players that they've been given a word.
   human_to_guess = random(dict);
   machine_to_guess = random(dict);
 
@@ -78,20 +168,17 @@ function generate() {
 
   speaker.say(
     "host",
-    "alright, you two. you've both been assigned a random 5-letter english word. put your thinking caps on — may the quickest win!!!",
+    "alright, you two. you've both been assigned a random 5-letter english word. put your thinking caps on — may the quickest win!!!",
   );
 
   global_state = "await";
 }
-
 function welcome() {
-  // host.speech.speak(
-  //   `"welcome puny human ... we've been hearing your declarations on the news about humans being smarter than computers. let's put that to the test now; shall we? ......... you & the machine on your right have been assigned a random 5-letter word. the first one to guess wins ...... are you game? .......,,,, `,
-  // );
   speaker.say("host", "welcome ... blah blah ... are you game?");
   speaker.say("machine", "i'm ready ... i'm going to take you DOWN!", () => {
     show_ready_btn();
   });
+
   global_state = "null";
 }
 let ready_btn;
@@ -104,76 +191,33 @@ function show_ready_btn() {
   ready_btn.mousePressed(() => {
     ready_btn.remove();
     ready_btn = null;
-
     global_state = "generate";
   });
-}
-
-function mousePressed() {
-  if (global_state === "begin") {
-    userStartAudio();
-    global_state = "await";
-  }
-}
-function keyPressed() {
-  if (human.local_state === "thinking") {
-    human.type(key);
-  }
-}
-function ui() {
-  background(0);
-
-  if (global_state == "await") {
-    textFont(font);
-    fill(255);
-    textSize(16);
-    textAlign(LEFT, TOP);
-
-    // left terminal (human)
-    let lx = 50;
-    let ly = 50;
-
-    text("human-representative:", lx, ly);
-
-    for (let i = 0; i < human.log.length; i++) {
-      text("> " + human.log[i], lx, ly + 30 + i * 22);
-    }
-
-    text("> " + human.current, lx, ly + 30 + human.log.length * 22);
-
-    // right terminal (machine placeholder for now)
-    let rx = width / 2 + 50;
-    let ry = 50;
-
-    text("machine-representative:", rx, ry);
-
-    for (let i = 0; i < machine.log.length; i++) {
-      text("> " + machine.log[i], rx, ry + 30 + i * 22);
-    }
-
-    text("> " + machine.current, rx, ry + 30 + machine.log.length * 22);
-  }
 }
 
 /* actors */
 class Human {
   constructor() {
-    this.current = ""; //current character.
-    this.log = []; //we keep a log of everything the person enters.
+    this.current = "";
+    this.log = [];
+
     this.sent_word = null;
+    this.result = null;
 
     this.local_state = "null";
+
+    this.attempts = [];
   }
 
   think() {
-    //the actual thinking human does by itself. we just keep track of the characters.
     if (this.current.length != 5) {
       this.local_state = "thinking";
-    } else if (this.current.length === 5) {
+    } else {
       this.send();
       this.local_state = "null";
     }
   }
+
   type(key) {
     if (keyCode === BACKSPACE || key === "backspace") {
       this.current = this.current.slice(0, -1);
@@ -184,29 +228,28 @@ class Human {
       this.current += key.toLowerCase();
     }
   }
+
   send() {
     this.sent_word = this.current;
+
+    this.result = evaluate(this.sent_word, human_to_guess);
+
     this.log.push(this.current);
 
-    //reset current word, which resets the thinking too.
-    this.current = "";
-  }
+    this.attempts.push({
+      word: this.current,
+      result: this.result.result,
+    });
 
-  //master reset if i want multiple rounds:
-  reset() {
     this.current = "";
-    this.sent_word = null;
-    this.log = [];
-    this.state = "idle";
   }
 }
 
 class Machine {
   constructor() {
-    this.current = ""; //current character.
-    this.log = []; //we keep a log of everything the person enters.
+    this.current = "";
+    this.log = [];
     this.sent_word = null;
-
     this.local_state = "null";
   }
   think() {}
@@ -233,6 +276,7 @@ function welcome() {
   global_state = "null";
 }
 */
+
 class Speaker {
   constructor() {
     this.speech = new p5.Speech();
@@ -243,7 +287,6 @@ class Speaker {
     this.speech.onEnd = () => {
       this.isSpeaking = false;
 
-      // run callback for JUST-finished line
       if (this.currentCallback) {
         this.currentCallback();
         this.currentCallback = null;
@@ -263,7 +306,6 @@ class Speaker {
 
     let { who, txt, done } = this.queue.shift();
 
-    // set voice
     if (who == "host") {
       this.speech.setVoice("Grandpa (English (United Kingdom))");
       this.speech.setRate(0.9);
@@ -273,8 +315,7 @@ class Speaker {
       this.speech.setPitch(1.3);
     }
 
-    this.currentCallback = done; // store callback for THIS line
-
+    this.currentCallback = done;
     this.isSpeaking = true;
     this.speech.speak(txt);
   }
