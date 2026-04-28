@@ -249,7 +249,7 @@ function generate() {
       global_state = "await";
     },
   );
-  global_state = "null"; 
+  global_state = "null"; //prevent from looping. onEnd for the speech runs independently.
 }
 function welcome() {
   speaker.say("host", "welcome ... blah blah ... are you game?");
