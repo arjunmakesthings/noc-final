@@ -28,7 +28,7 @@ let dict; //dictionary to store all words.
 let human_to_guess = "apple";
 let machine_to_guess = "mango";
 
-let global_state = "begin";
+let global_state = "begin"; //it has to be begin because everything in key pressed is wrapped inside this condition being true. to test a stage, change state in mousePressed() because chrome needs a user-activation for audio.
 
 let font;
 
@@ -141,7 +141,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "await";
+    global_state = "welcome";
   }
 }
 
@@ -357,7 +357,7 @@ class Machine {
     // 1. THINKING PHASE (5 sec pause + animated dots)
     if (this.phase === "thinking") {
       if (this.timer === 0) {
-        speaker.say("machine", "thinking"); 
+        speaker.say("machine", "thinking");
         this.timer = millis();
         this.thinkFrame = 0;
         this.lastThinkTick = millis();
@@ -521,7 +521,7 @@ class Speaker {
       this.speech.setRate(0.9);
     } else if (who == "machine") {
       this.speech.setVoice("Boing");
-      this.speech.setRate(1.1);
+      this.speech.setRate(1.2);
       this.speech.setPitch(1.3);
     }
 
