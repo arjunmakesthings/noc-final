@@ -30,11 +30,13 @@ let machine_to_guess = "mango";
 
 let global_state = "begin"; //it has to be begin because everything in key pressed is wrapped inside this condition being true. to test a stage, change state in mousePressed() because chrome needs a user-activation for audio.
 
-let font;
+let reg_font;
+let bold_font; 
 
 function preload() {
   dict = loadJSON("./words.json");
-  font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
+  reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
+  bold_font = loadFont ("../assets/fonts/JetBrainsMonoNL-Regular.ttf"); 
 }
 
 function setup() {
@@ -141,7 +143,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "welcome";
+    global_state = "await";
   }
 }
 
@@ -155,22 +157,30 @@ function ui() {
   background(0);
 
   //global ui: 
-  // text ("who is faster: a human-being or a 1-byte")
+  fill (255); 
+
+  push(); 
+  textSize(32); 
+  textAlign (CENTER, CENTER); 
+  textFont (bold_font); 
+  text ("the ultimate battle of (wordle) wits", width/2, 100); 
+  pop(); 
 
   if (global_state == "await") {
-    textFont(font);
+    textFont(reg_font);
     textSize(16);
     textAlign(LEFT, TOP);
 
     //human stuff:
-    let lx = 50;
-    let ly = 50;
+    let lx = 200;
+    let ly = 200;
 
-    fill(255);
-    text("human-representative:", lx, ly);
+    fill(190);
+    text("human-being:", lx, ly);
 
     let y = ly + 30;
 
+    fill (255); 
     for (let t = 0; t < human.attempts.length; t++) {
       let attempt = human.attempts[t];
 
@@ -199,11 +209,11 @@ function ui() {
     fill(255);
     text("> " + human.current, lx, y);
 
-    let rx = width / 2 + 50;
-    let ry = 50;
+    let rx = width / 2 + 400;
+    let ry = 200;
 
-    fill(255);
-    text("machine-representative:", rx, ry);
+    fill(190);
+    text("1-byte/second computer:", rx, ry);
 
     let my = ry + 30;
 

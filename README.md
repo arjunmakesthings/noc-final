@@ -2,6 +2,18 @@ made with aram pundak; april, 2026.
 
 ---
 
+title: can you beat a 1-byte-per-second computer? 
+
+can you beat a 1 byte/s computer? 
+
+---
+
+### old; 2604: 
+
+made with aram pundak; april, 2026. 
+
+---
+
 title: artificial 'intelligence', machine 'learning' & human 'pressure'. 
 description: 
 
