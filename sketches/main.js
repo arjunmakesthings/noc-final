@@ -25,7 +25,10 @@ let global_state = "begin";
 let human, machine, host, speaker;
 
 let dict; //dictionary to store all words.
-let human_to_guess, machine_to_guess; //vars to store words to guess by both players.
+// let human_to_guess, machine_to_guess; //vars to store words to guess by both players.
+
+let human_to_guess = "apple";
+let machine_to_guess = "mango";
 
 function preload() {
   dict = loadJSON("./words.json");
@@ -49,9 +52,7 @@ function draw() {
     welcome();
   } else if (global_state == "generate") {
     generate();
-  }
-  else if (global_state == "await"){
-    
+  } else if (global_state == "await") {
   }
 
   ui();
@@ -101,21 +102,87 @@ function show_ready_btn() {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "generate";
+    global_state = "await";
   }
 }
-
+function keyPressed() {
+  if (global_state === "await") {
+    human.type(key);
+  }
+}
 function ui() {
   background(0);
+
+  if (global_state == "await") {
+    fill(255);
+    textSize(20);
+    textAlign(LEFT, TOP);
+
+    // left terminal (human)
+    let hx = 50;
+    let hy = 50;
+
+    text("human terminal", hx, hy);
+
+    for (let i = 0; i < human.log.length; i++) {
+      text("> " + human.log[i], hx, hy + 30 + i * 22);
+    }
+
+    text("> " + human.current, hx, hy + 30 + human.log.length * 22);
+
+    // right terminal (machine placeholder for now)
+    let mx = width / 2 + 50;
+    let my = 50;
+
+    text("machine terminal", mx, my);
+
+    text("> " + machine_to_guess, mx, my + 30);
+  }
 }
 
 /* actors */
 class Human {
-  constructor() {}
+  constructor() {
+    this.current = "";
+    this.log = [];
+    this.sent_word = null;
+  }
+
+  type(key) {
+    if (keyCode === BACKSPACE || key === "backspace") {
+      this.current = this.current.slice(0, -1);
+      return;
+    }
+
+    if (key.length === 1) {
+      this.current += key.toLowerCase();
+    }
+
+    if (this.current.length === 5) {
+      this.send();
+    }
+  }
+
+  send() {
+    this.sent_word = this.current;
+    this.log.push(this.current);
+    console.log("human sent:", this.sent_word);
+
+    this.current = "";
+  }
+
+  reset() {
+    this.current = "";
+    this.sent_word = null;
+    this.log = [];
+  }
 }
 
 class Machine {
   constructor() {}
+  think() {}
+  type() {}
+  send() {}
 }
 
 class Host {
