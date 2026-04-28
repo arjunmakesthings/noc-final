@@ -19,10 +19,10 @@ a thing i realized after a while is that p5.speech can't be instanced. there has
 another annoying thing that browsers do is force a click to play any sound or do any speech thing. so, to test individual stages, go to the mousePressed function and change state from there (otherwise the audio(s) won't play).  
 */
 
-let human, machine, host, speaker; //actors. 
+let human, machine, host, speaker; //actors.
 
 let dict; //dictionary to store all words.
-// let human_to_guess, machine_to_guess; 
+// let human_to_guess, machine_to_guess;
 
 // temp words for testing:
 let human_to_guess = "apple";
@@ -118,6 +118,7 @@ function ui() {
     textSize(16);
     textAlign(LEFT, TOP);
 
+    //human stuff:
     let lx = 50;
     let ly = 50;
 
@@ -129,19 +130,28 @@ function ui() {
     for (let t = 0; t < human.attempts.length; t++) {
       let attempt = human.attempts[t];
 
-      for (let i = 0; i < attempt.word.length; i++) {
-        let c = attempt.word[i];
+      let line = "> " + attempt.word;
 
-        if (attempt.result[i] === "correct") fill(0, 255, 0);
-        else if (attempt.result[i] === "wrong-pos") fill(255, 200, 0);
-        else fill(120);
+      for (let i = 0; i < line.length; i++) {
+        let c = line[i];
 
-        text(c, lx + i * 18, y);
+        if (i < 2) {
+          fill(120);
+        } else {
+          let idx = i - 2;
+
+          if (attempt.result[idx] === "correct") fill(0, 255, 0);
+          else if (attempt.result[idx] === "wrong-pos") fill(255, 200, 0);
+          else fill(120);
+        }
+
+        text(c, lx + textWidth(line.slice(0, i)), y);
       }
 
       y += 28;
     }
 
+    // current typing (no result yet)
     fill(255);
     text("> " + human.current, lx, y);
 
