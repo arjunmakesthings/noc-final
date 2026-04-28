@@ -123,7 +123,6 @@ function evaluate(guess, from) {
     //just wrong position:
     speaker.say("host", "nope " + from + "... bad guess");
   } else {
-    
   }
 
   return {
@@ -198,11 +197,36 @@ function ui() {
     fill(255);
     text("machine-representative:", rx, ry);
 
-    for (let i = 0; i < machine.log.length; i++) {
-      text("> " + machine.log[i], rx, ry + 30 + i * 22);
+    let my = ry + 30;
+
+    // committed machine guesses (same rendering logic as human)
+    for (let t = 0; t < machine.attempts.length; t++) {
+      let attempt = machine.attempts[t];
+
+      let line = "> " + attempt.word;
+
+      for (let i = 0; i < line.length; i++) {
+        let c = line[i];
+
+        if (i < 2) {
+          fill(120);
+        } else {
+          let idx = i - 2;
+
+          if (attempt.result[idx] === "correct") fill(0, 255, 0);
+          else if (attempt.result[idx] === "wrong-pos") fill(255, 200, 0);
+          else fill(120);
+        }
+
+        text(c, rx + textWidth(line.slice(0, i)), my);
+      }
+
+      my += 28;
     }
 
-    text("> " + machine.current, rx, ry + 30 + machine.log.length * 22);
+    // live machine typing stream (NO evaluation yet)
+    fill(255);
+    text("> " + machine.current, rx, my);
   }
 }
 
@@ -292,16 +316,134 @@ class Human {
   }
 }
 
+//machine is programmed with the help of chat-gpt.
 class Machine {
   constructor() {
     this.current = "";
     this.log = [];
     this.sent_word = null;
-    this.local_state = "null";
+    this.local_state = "thinking";
+
+    this.attempts = [];
+
+    this.knowledge = {
+      fixed: Array(5).fill(null),
+      banned: new Set(),
+      mustContain: new Set(),
+    };
+
+    this.phase = "thinking"; // thinking → typing → sending
+
+    this.timer = 0;
+    this.reveal_index = 0;
+    this.buffer = "";
   }
-  think() {}
-  type() {}
-  send() {}
+
+  think() {
+    if (global_state !== "await") return;
+
+    // 1. THINKING PHASE (5 sec pause)
+    if (this.phase === "thinking") {
+      if (this.timer === 0) {
+        this.timer = millis();
+        this.current = "> thinking";
+      }
+
+      if (millis() - this.timer < 5000) return;
+
+      // move to typing
+      this.phase = "typing";
+      this.timer = millis();
+      this.reveal_index = 0;
+
+      this.buffer = this.type(); // generate guess ONCE
+    }
+
+    // 2. TYPING PHASE (1 char per second)
+    if (this.phase === "typing") {
+      this.current = "> " + this.buffer.slice(0, this.reveal_index);
+
+      if (millis() - this.timer > 1000) {
+        this.timer = millis();
+        this.reveal_index++;
+      }
+
+      // finished typing
+      if (this.reveal_index > this.buffer.length) {
+        this.send();
+        this.phase = "thinking";
+        this.timer = 0;
+      }
+    }
+  }
+
+  type() {
+    let guess = "";
+
+    for (let i = 0; i < 5; i++) {
+      // 1. fixed letters (green)
+      if (this.knowledge.fixed[i]) {
+        guess += this.knowledge.fixed[i];
+        continue;
+      }
+
+      let pool = "abcdefghijklmnopqrstuvwxyz"
+        .split("")
+        .filter((c) => !this.knowledge.banned.has(c));
+
+      // 2. ensure mustContain letters are prioritized somewhere else
+      let must = Array.from(this.knowledge.mustContain);
+
+      // avoid placing a known yellow in same slot? (weak constraint, ok for now)
+      pool = pool.filter((c) => c !== must[i]);
+
+      let chosen;
+
+      // bias: if we still need to place a mustContain letter, prefer it
+      if (must.length > 0 && Math.random() < 0.5) {
+        chosen = random(must);
+      } else {
+        chosen = random(pool);
+      }
+
+      guess += chosen;
+    }
+
+    return guess;
+  }
+
+  send() {
+    this.sent_word = this.buffer;
+
+    let result = evaluate(this.sent_word, "machine");
+
+    this.log.push(this.buffer);
+
+    this.attempts.push({
+      word: this.buffer,
+      result: result.result,
+    });
+
+    for (let i = 0; i < 5; i++) {
+      let r = result.result[i];
+      let c = this.buffer[i];
+
+      if (r === "correct") {
+        this.knowledge.fixed[i] = c;
+      }
+
+      if (r === "wrong") {
+        this.knowledge.banned.add(c);
+      }
+
+      if (r === "wrong-pos") {
+        // THIS is the key fix
+        this.knowledge.mustContain.add(c);
+      }
+    }
+
+    this.current = "";
+  }
 }
 
 class Host {
