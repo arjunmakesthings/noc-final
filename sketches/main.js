@@ -69,25 +69,62 @@ function draw() {
 }
 
 //global helpers:
-function evaluate(str, word) {
+function evaluate(guess, from) {
   let result = [];
 
+  if (from == "human") {
+    word = human_to_guess;
+  } else if (from == "machine") {
+    word = machine_to_guess;
+  }
+
+  // convert word into mutable pool
+  let pool = word.split("");
+
+  // 1st pass: greens
   for (let i = 0; i < 5; i++) {
-    let c = str[i];
+    let c = guess[i];
 
     if (c === word[i]) {
       result[i] = "correct";
-    } else if (word.includes(c)) {
+      pool[i] = null; // consume it
+    }
+  }
+
+  // 2nd pass: yellows / greys
+  for (let i = 0; i < 5; i++) {
+    if (result[i] === "correct") continue;
+
+    let c = guess[i];
+
+    let idx = pool.indexOf(c);
+
+    if (idx !== -1) {
       result[i] = "wrong-pos";
+      pool[idx] = null; // consume matched letter
     } else {
       result[i] = "wrong";
     }
   }
+
   let correct = result.filter((r) => r === "correct").length;
   let wrong_pos = result.filter((r) => r === "wrong-pos").length;
   let wrong_char = result.filter((r) => r === "wrong").length;
 
   let dominant = Math.max(correct, wrong_pos, wrong_char);
+
+  if (correct === 5) {
+    //all are correct.
+    global_state = "winner_declaration";
+  } else if (correct === dominant) {
+    //more correct characters:
+    speaker.say("host", "ooh, the " + from + "is close!");
+  } else if (wrong_char === dominant) {
+    //just wrong position:
+    speaker.say("host", "nope " + from + "... bad guess");
+  } else {
+    
+  }
 
   return {
     result,
@@ -242,7 +279,7 @@ class Human {
   send() {
     this.sent_word = this.current;
 
-    this.result = evaluate(this.sent_word, human_to_guess);
+    this.result = evaluate(this.sent_word, "human");
 
     this.log.push(this.current);
 
