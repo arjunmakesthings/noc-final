@@ -56,6 +56,11 @@ function setup() {
 
 function draw() {
   //since draw loops over time, we'll use it as a state change manager.
+  if (global_state === "winner_declaration") {
+    ui();
+    return; 
+  }
+
   if (global_state == "welcome") {
     welcome();
   } else if (global_state == "generate") {
@@ -281,6 +286,8 @@ class Human {
   }
 
   think() {
+    if (global_state !== "await") return;
+    
     if (this.current.length != 5) {
       this.local_state = "thinking";
     } else {
