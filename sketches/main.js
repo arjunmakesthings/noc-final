@@ -240,14 +240,16 @@ function generate() {
   human_to_guess = random(dict);
   machine_to_guess = random(dict);
 
-  console.log(human_to_guess, machine_to_guess);
+  // console.log(human_to_guess, machine_to_guess);
 
   speaker.say(
     "host",
     "alright, you two. you've both been assigned a random 5-letter english word. put your thinking caps on — may the quickest win!!!",
+    () => {
+      global_state = "await";
+    },
   );
-
-  global_state = "await";
+  global_state = "null"; 
 }
 function welcome() {
   speaker.say("host", "welcome ... blah blah ... are you game?");
