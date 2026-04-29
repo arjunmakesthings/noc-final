@@ -17,6 +17,15 @@ welcome (t.a.) -> give word (t.a.) -> await (n.t.) -> declare result (n.t. to pl
 a thing i realized after a while is that p5.speech can't be instanced. there has to be a global speaker object. 
 
 another annoying thing that browsers do is force a click to play any sound or do any speech thing. so, to test individual stages, go to the mousePressed function and change state from there (otherwise the audio(s) won't play).  
+
+idle        -> idle face
+smug        -> smug face
+sad         -> sad face
+win         -> win face
+slap_1_on   -> pin 12 HIGH
+slap_1_off  -> pin 12 LOW
+slap_2_on   -> pin 13 HIGH
+slap_2_off  -> pin 13 LOW
 */
 
 let human, machine, host, speaker; //actors.
@@ -99,7 +108,7 @@ function setup() {
   host = new Host();
   speaker = new Speaker();
 
-  send_serial("idle"); 
+  send_serial("idle");
 }
 
 function draw() {
@@ -172,11 +181,11 @@ function evaluate(guess, from) {
     winner = from;
     loser = from === "human" ? "machine" : "human";
 
-    if (winner === "human"){
+    if (winner === "human") {
       //we slap the machine.
-      send_serial("slap_2_on"); 
-    }else if (winner === "machine"){
-      send_serial("slap_1_on"); 
+      send_serial("slap_1_on");
+    } else if (winner === "machine") {
+      send_serial("slap_2_on");
     }
 
     global_state = "winner_declaration";
@@ -217,6 +226,7 @@ function evaluate(guess, from) {
       } else if (from === "machine") {
         on_msg = "slap_1_on";
         off_msg = "slap_1_off";
+        send_serial("sad")
       }
 
       // 🔥 immediate trigger (after speech ends)
@@ -241,13 +251,12 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "await";
+    global_state = "welcome";
     connect_serial();
   }
 }
 
 function keyPressed() {
-  send_serial(random(["I", "C"])); //for arduino debugging. it expects either X or Y to light up different LEDs.
   if (human.local_state === "thinking") {
     human.type(key);
   }
@@ -351,6 +360,7 @@ function ui() {
 //stages:
 function winner_declaration() {
   speaker.say("host", winner + " won. suck it, " + loser, () => {
+    send_serial("win"); 
     noLoop();
   });
   push();
@@ -506,6 +516,7 @@ class Machine {
     // 1. THINKING PHASE (5 sec pause)
     // 1. THINKING PHASE (5 sec pause + animated dots)
     if (this.phase === "thinking") {
+      send_serial("idle"); 
       if (this.timer === 0) {
         if (this.first_think) {
           this.thinking_synonym = "thinking";
