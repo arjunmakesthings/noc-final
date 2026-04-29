@@ -267,8 +267,8 @@ function winner_declaration() {
   // fill(212,175,55);
   fill(207, 181, 59);
   textSize(95);
-  // let loser = from == "human" ? "machine" : "human";
-  text(`machine won.\n suck it, human.`, 0, -10);
+  let loser = from == "human" ? "machine" : "human";
+  text(+ from + `won.\n suck it, human.`, 0, -10);
   pop();
 }
 
