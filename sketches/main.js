@@ -169,13 +169,35 @@ function evaluate(guess, from) {
     //all are correct.
     winner = from;
     loser = from === "human" ? "machine" : "human";
+
     global_state = "winner_declaration";
   } else if (correct === dominant) {
     //more correct characters:
-    speaker.say("host", "ooh, the " + from + "is close!");
+    let close_dialogue = [
+      "ooh, the " + from + " is close!",
+      "ooh, the " + from + " is almost there!",
+      "the " + from + " is close!",
+      "the " + from + " is almost there!",
+      from + " is close to winning!",
+      from + " is getting there!",
+      from + " almost",
+    ];
+
+    speaker.say("host", random(close_dialogue));
   } else if (wrong_char === dominant) {
     //just wrong position:
-    speaker.say("host", "nope " + from + "... bad guess");
+    let bad_dialogue = [
+      "nope " + from + "... bad guess",
+      from + " no, that's wrong",
+      "no" + from + "not quite",
+      "you" + from + "are not close",
+      "you" + from + "are so off",
+      "error wrong error error",
+      "lol ... stupid" + from,
+      from + "you are a monkey in a negligee",
+    ];
+
+    speaker.say("host", random(bad_dialogue));
   } else {
   }
 
@@ -299,6 +321,9 @@ function ui() {
 
 //stages:
 function winner_declaration() {
+  speaker.say("host", winner + " won. suck it, " + loser, () => {
+    noLoop();
+  });
   push();
   // rectMode(CENTER, CENTER);
   // fill(255);
