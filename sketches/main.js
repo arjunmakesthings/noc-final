@@ -36,6 +36,47 @@ let bold_font;
 let winner;
 let loser;
 
+let thinking_synonyms = [
+  "accomplishing",
+  "actioning",
+  "baking",
+  "calculating",
+  "cerebrating",
+  "clauding",
+  "computing",
+  "considering",
+  "cooking",
+  "crafting",
+  "creating",
+  "crunching",
+  "deliberating",
+  "finagling",
+  "forging",
+  "forming",
+  "generating",
+  "hustling",
+  "ideating",
+  "inferring",
+  "manifesting",
+  "marinating",
+  "moseying",
+  "mulling",
+  "mustereding",
+  "musing",
+  "noodling",
+  "percolating",
+  "pondering",
+  "processing",
+  "ruminating",
+  "schlepping",
+  "shucking",
+  "simmering",
+  "synthesizing",
+  "thinking",
+  "vibing",
+  "working",
+];
+
 function preload() {
   dict = loadJSON("./words.json");
   reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
@@ -399,6 +440,9 @@ class Machine {
     this.thinkAnim = [".", "..", "...", ".."];
     this.thinkFrame = 0;
     this.lastThinkTick = 0;
+
+    this.first_think = true;
+    this.thinking_synonym = "thinking";
   }
 
   think() {
@@ -408,18 +452,29 @@ class Machine {
     // 1. THINKING PHASE (5 sec pause + animated dots)
     if (this.phase === "thinking") {
       if (this.timer === 0) {
-        speaker.say("machine", "thinking");
+        if (this.first_think) {
+          this.thinking_synonym = "thinking";
+          this.first_think = false;
+        } else {
+          this.thinking_synonym = random(thinking_synonyms);
+        }
+
+        speaker.say("machine", this.thinking_synonym);
+
         this.timer = millis();
         this.thinkFrame = 0;
         this.lastThinkTick = millis();
-        this.current = "thinking";
+
+        this.current = this.thinking_synonym;
       }
 
-      // animate dots every ~400ms
+      // animate dots
       if (millis() - this.lastThinkTick > 400) {
         this.lastThinkTick = millis();
         this.thinkFrame = (this.thinkFrame + 1) % this.thinkAnim.length;
-        this.current = "thinking " + this.thinkAnim[this.thinkFrame];
+
+        this.current =
+          this.thinking_synonym + " " + this.thinkAnim[this.thinkFrame];
       }
 
       if (millis() - this.timer < 5000) return;
