@@ -1,13 +1,19 @@
 /*
-  face-display: 32x32 RGB matrix that swaps facial expressions over serial.
+  face-display: 32x32 RGB matrix that swaps facial expressions + drives
+  two slap-hand motors over serial.
   target board: Arduino Zero (Native USB Port preferred).
 
-  serial protocol (115200 baud, newline-terminated, case-insensitive):
-    I  -> idle
-    C  -> smug
-    S  -> sad
-    W  -> win
-  unknown bytes are ignored. on boot the matrix shows IDLE.
+  serial protocol (115200 baud, newline-terminated, lowercase):
+    idle        -> idle face
+    smug        -> smug face
+    sad         -> sad face
+    win         -> win face
+    slap_1_on   -> pin 12 HIGH
+    slap_1_off  -> pin 12 LOW
+    slap_2_on   -> pin 13 HIGH
+    slap_2_off  -> pin 13 LOW
+  unknown commands are ignored. on boot the matrix shows IDLE and both
+  slap pins are LOW.
 
   bitmaps:
     each face = uint16_t[1024] PROGMEM array (32x32 RGB565, row-major).
@@ -27,6 +33,10 @@ uint8_t oePin      = 9;
 Adafruit_Protomatter matrix(
   32, 4, 1, rgbPins, 4, addrPins,
   clockPin, latchPin, oePin, false);
+
+// ---------- slap-hand motor pins ----------
+const uint8_t slapHand1 = 12;
+const uint8_t slapHand2 = 13;
 
 // ---------- face slots ----------
 enum FaceId : uint8_t {
@@ -439,19 +449,25 @@ void drawFace(uint8_t id) {
   matrix.show();
 }
 
-uint8_t commandToFace(char c) {
-  switch (c) {
-    case 'I': case 'i': return FACE_IDLE;
-    case 'C': case 'c': return FACE_SMUG;
-    case 'S': case 's': return FACE_SAD;
-    case 'W': case 'w': return FACE_WIN;
-    default:            return 255;
-  }
+void handleCommand(const String& cmd) {
+  if      (cmd == "idle")       drawFace(FACE_IDLE);
+  else if (cmd == "smug")       drawFace(FACE_SMUG);
+  else if (cmd == "sad")        drawFace(FACE_SAD);
+  else if (cmd == "win")        drawFace(FACE_WIN);
+  else if (cmd == "slap_1_on")  digitalWrite(slapHand1, HIGH);
+  else if (cmd == "slap_1_off") digitalWrite(slapHand1, LOW);
+  else if (cmd == "slap_2_on")  digitalWrite(slapHand2, HIGH);
+  else if (cmd == "slap_2_off") digitalWrite(slapHand2, LOW);
 }
 
 // ---------- arduino lifecycle ----------
 void setup() {
   Serial.begin(115200);
+
+  pinMode(slapHand1, OUTPUT);
+  pinMode(slapHand2, OUTPUT);
+  digitalWrite(slapHand1, LOW);
+  digitalWrite(slapHand2, LOW);
 
   ProtomatterStatus status = matrix.begin();
   if (status != PROTOMATTER_OK) {
@@ -467,13 +483,19 @@ void setup() {
   Serial.println("face-display ready");
 }
 
+String inputBuffer = "";
+
 void loop() {
   while (Serial.available()) {
     int b = Serial.read();
     if (b < 0) break;
-    if (b == '\n' || b == '\r' || b == ' ') continue;
-
-    uint8_t f = commandToFace((char)b);
-    if (f != 255) drawFace(f);
+    if (b == '\n' || b == '\r') {
+      if (inputBuffer.length() > 0) {
+        handleCommand(inputBuffer);
+        inputBuffer = "";
+      }
+    } else {
+      inputBuffer += (char)b;
+    }
   }
 }
