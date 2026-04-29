@@ -458,6 +458,7 @@ class Human {
   }
 
   think() {
+    //the human thinks themselves.
     if (global_state !== "await") return;
 
     if (this.current.length != 5) {
