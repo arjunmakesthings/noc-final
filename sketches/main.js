@@ -98,6 +98,8 @@ function setup() {
   machine = new Machine();
   host = new Host();
   speaker = new Speaker();
+
+  send_serial("idle"); 
 }
 
 function draw() {
@@ -170,6 +172,13 @@ function evaluate(guess, from) {
     winner = from;
     loser = from === "human" ? "machine" : "human";
 
+    if (winner === "human"){
+      //we slap the machine.
+      send_serial("slap_2_on"); 
+    }else if (winner === "machine"){
+      send_serial("slap_1_on"); 
+    }
+
     global_state = "winner_declaration";
   } else if (correct === dominant) {
     //more correct characters:
@@ -197,7 +206,27 @@ function evaluate(guess, from) {
       from + "you are a monkey in a negligee",
     ];
 
-    speaker.say("host", random(bad_dialogue));
+    speaker.say("host", random(bad_dialogue), () => {
+      let on_msg;
+      let off_msg;
+
+      // decide which actuator
+      if (from === "human") {
+        on_msg = "slap_2_on";
+        off_msg = "slap_2_off";
+      } else if (from === "machine") {
+        on_msg = "slap_1_on";
+        off_msg = "slap_1_off";
+      }
+
+      // 🔥 immediate trigger (after speech ends)
+      send_serial(on_msg);
+
+      // 🔥 safety reset (ensures motor always turns off even if something glitches)
+      setTimeout(() => {
+        send_serial(off_msg);
+      }, 3000);
+    });
   } else {
   }
 
@@ -213,7 +242,7 @@ function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
     global_state = "await";
-    // connect_serial();
+    connect_serial();
   }
 }
 
@@ -365,6 +394,7 @@ function welcome() {
     "machine",
     "i'm ready ... and i'm going to take this human down.",
     () => {
+      send_serial("smug");
       show_ready_btn();
     },
   );
