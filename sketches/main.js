@@ -26,7 +26,7 @@ let dict; //dictionary to store all words.
 
 // temp words for testing:
 let human_to_guess = "apple";
-let machine_to_guess = "mango";
+let machine_to_guess = "apple";
 
 let global_state = "begin"; //it has to be begin because everything in key pressed is wrapped inside this condition being true. to test a stage, change state in mousePressed() because chrome needs a user-activation for audio.
 
@@ -76,6 +76,7 @@ function draw() {
 }
 
 //global helpers:
+let word;
 function evaluate(guess, from) {
   let result = [];
 
@@ -251,7 +252,8 @@ function ui() {
 //stages:
 function generate() {
   human_to_guess = random(dict);
-  machine_to_guess = random(dict);
+  // machine_to_guess = random(dict);
+  machine_to_guess = human_to_guess; 
 
   // console.log(human_to_guess, machine_to_guess);
 
@@ -333,6 +335,9 @@ class Human {
       word: this.current,
       result: this.result.result,
     });
+
+    // 🔥 NEW: machine learns from human guess
+    machine.learn(this.current, this.result.result);
 
     this.current = "";
   }
@@ -460,25 +465,38 @@ class Machine {
       result: result.result,
     });
 
+    this.learn(this.buffer, result.result);
+
+    this.current = "";
+  }
+  learn(word, resultArr) {
+    // first pass: collect all non-wrong letters
+    let confirmed = new Set();
+
     for (let i = 0; i < 5; i++) {
-      let r = result.result[i];
-      let c = this.buffer[i];
+      let r = resultArr[i];
+      let c = word[i];
 
       if (r === "correct") {
         this.knowledge.fixed[i] = c;
-      }
-
-      if (r === "wrong") {
-        this.knowledge.banned.add(c);
+        confirmed.add(c);
       }
 
       if (r === "wrong-pos") {
-        // THIS is the key fix
         this.knowledge.mustContain.add(c);
+        confirmed.add(c);
       }
     }
 
-    this.current = "";
+    // second pass: only ban if NOT confirmed anywhere
+    for (let i = 0; i < 5; i++) {
+      let r = resultArr[i];
+      let c = word[i];
+
+      if (r === "wrong" && !confirmed.has(c)) {
+        this.knowledge.banned.add(c);
+      }
+    }
   }
 }
 
