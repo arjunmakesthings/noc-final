@@ -225,14 +225,19 @@ function setup() {
 function draw() {
   background(0);
 
-  if (frameCount % 60 == 0) {
-    tog = !tog;
-    if (tog == true) {
-      speaker.say("hello", "Fred");
-    } else {
-      speaker.say("hello", "Boing");
-    }
-  }
+  speaker.say(
+    "we are basically playing wordle. the objective is to guess a 5-letter-english word. ",
+    "Bad News",
+  );
+
+  // if (frameCount % 60 == 0) {
+  //   tog = !tog;
+  //   if (tog == true) {
+  //     speaker.say("hello", "Eddy (English (United Kingdom))");
+  //   } else {
+  //     speaker.say("hello", "Boing");
+  //   }
+  // }
 }
 
 function mousePressed() {
@@ -245,6 +250,7 @@ class Speaker {
   }
   say(txt, voice) {
     this.speech.setVoice(voice);
+    this.speech.setRate(1.5); 
     this.speech.speak(txt);
   }
 }

@@ -33,7 +33,7 @@ let global_state = "begin"; //it has to be begin because everything in key press
 let reg_font;
 let bold_font;
 
-let winner; 
+let winner;
 
 function preload() {
   dict = loadJSON("./words.json");
@@ -125,7 +125,7 @@ function evaluate(guess, from) {
 
   if (correct === 5) {
     //all are correct.
-    winner = from; 
+    winner = from;
     global_state = "winner_declaration";
   } else if (correct === dominant) {
     //more correct characters:
@@ -147,8 +147,8 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "welcome";
-    connect_serial(); 
+    global_state = "winner_declaration";
+    // connect_serial();
   }
 }
 
@@ -257,17 +257,18 @@ function ui() {
 //stages:
 function winner_declaration() {
   push();
-  rectMode(CENTER, CENTER);
-  fill(255);
+  // rectMode(CENTER, CENTER);
+  // fill(255);
   translate(width / 2, height / 2);
-  angleMode(DEGREES);
-  rotate(-10);
-  rect(0, 0, 800, 200);
+  // angleMode(DEGREES);
+  // rotate(-10);
+  // rect(0, 0, 800, 200);
   textAlign(CENTER, CENTER);
-  fill(0); 
-  textSize(32); 
-  let loser = (from=="human")? "machine" : "human";   
-  text(from + " wins. " , 0, -10);
+  // fill(212,175,55);
+  fill(207, 181, 59);
+  textSize(95);
+  // let loser = from == "human" ? "machine" : "human";
+  text(`machine won.\n suck it, human.`, 0, -10);
   pop();
 }
 
@@ -280,7 +281,7 @@ function generate() {
 
   speaker.say(
     "host",
-    "alright, you two. you've both been assigned a random 5-letter english word. put your thinking caps on — may the quickest win!!!",
+    "the objective is to guess a randomly chosen 5-letter-english word. whoever guesses it correctly first wins / in other words, we're playing wordle. beware human — just like yourself, the machine see your input, and uses a genetic algorithm to learn from the guesses entered — .... 3 ... 2 ... 1 ... RUMBLE!",
     () => {
       global_state = "await";
     },
@@ -288,10 +289,18 @@ function generate() {
   global_state = "null"; //prevent from looping. onEnd for the speech runs independently.
 }
 function welcome() {
-  speaker.say("host", "welcome ... blah blah ... are you game?");
-  speaker.say("machine", "i'm ready ... i'm going to take you DOWN!", () => {
-    show_ready_btn();
-  });
+  speaker.say(
+    "host",
+    "welcome viewers from this special nature of code class. we have been hearing that the world keeps debating — who is smarter: human-beings or computer-machines? ... today, we put that to the test and answer it once and for all ...//...,,, on my left ... we have a bare-bones machine ... capable of thinking only in one b.p.s ... byte per second ... and ...... on the right ... a meat-sack who supposedly thinks that they are 'smart' ...  we'll see today.",
+  );
+  speaker.say("host", "fighters ... are you ready?");
+  speaker.say(
+    "machine",
+    "i'm ready ... and i'm going to take this human down.",
+    () => {
+      show_ready_btn();
+    },
+  );
 
   global_state = "null";
 }
@@ -305,7 +314,7 @@ function show_ready_btn() {
   ready_btn.mousePressed(() => {
     ready_btn.remove();
     ready_btn = null;
-    global_state = "generate";
+    global_state = "await";
   });
 }
 
