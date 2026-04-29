@@ -147,11 +147,13 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "winner_declaration";
+    global_state = "welcome";
+    connect_serial(); 
   }
 }
 
 function keyPressed() {
+  send_serial(random(["I", "C"])); //for arduino debugging. it expects either X or Y to light up different LEDs.
   if (human.local_state === "thinking") {
     human.type(key);
   }
@@ -581,4 +583,35 @@ class Speaker {
     this.isSpeaking = true;
     this.speech.speak(txt);
   }
+}
+
+/*
+ serial stuff; written by aram's claude. 
+
+ usage: 
+ call connect_serial() once from a click / keypress handler. we do this when we do userStartAudio. 
+
+ send_serial() with character "x" will send "x\n" to the arduino. we use this to change every physical peripheral — the arduino is set up to read serial at 115200 baud. 
+*/
+
+let serial_port = null;
+let serial_writer = null;
+
+async function connect_serial() {
+  if (serial_writer || !("serial" in navigator)) return;
+  try {
+    serial_port = await navigator.serial.requestPort();
+    await serial_port.open({ baudRate: 115200 });
+    serial_writer = serial_port.writable.getWriter();
+    console.log("serial: connected");
+  } catch (e) {
+    console.log("serial: not connected", e && e.message);
+  }
+}
+
+function send_serial(c) {
+  if (!serial_writer) return;
+  serial_writer.write(new TextEncoder().encode(c + "\n")).catch((e) => {
+    console.warn("serial write failed", e && e.message);
+  });
 }
