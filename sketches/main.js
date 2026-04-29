@@ -31,12 +31,14 @@ let machine_to_guess = "apple";
 let global_state = "begin"; //it has to be begin because everything in key pressed is wrapped inside this condition being true. to test a stage, change state in mousePressed() because chrome needs a user-activation for audio.
 
 let reg_font;
-let bold_font; 
+let bold_font;
+
+let winner; 
 
 function preload() {
   dict = loadJSON("./words.json");
   reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
-  bold_font = loadFont ("../assets/fonts/JetBrainsMonoNL-Regular.ttf"); 
+  bold_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
 }
 
 function setup() {
@@ -58,10 +60,6 @@ function setup() {
 
 function draw() {
   //since draw loops over time, we'll use it as a state change manager.
-  if (global_state === "winner_declaration") {
-    ui();
-    return;
-  }
 
   if (global_state == "welcome") {
     welcome();
@@ -73,6 +71,10 @@ function draw() {
   }
 
   ui();
+
+  if (global_state == "winner_declaration") {
+    winner_declaration();
+  }
 }
 
 //global helpers:
@@ -123,6 +125,7 @@ function evaluate(guess, from) {
 
   if (correct === 5) {
     //all are correct.
+    winner = from; 
     global_state = "winner_declaration";
   } else if (correct === dominant) {
     //more correct characters:
@@ -144,7 +147,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "await";
+    global_state = "winner_declaration";
   }
 }
 
@@ -157,17 +160,17 @@ function keyPressed() {
 function ui() {
   background(0);
 
-  //global ui: 
-  fill (255); 
+  //global ui:
+  fill(255);
 
-  push(); 
-  textSize(32); 
-  textAlign (CENTER, CENTER); 
-  textFont (bold_font); 
-  text ("the ultimate battle of (wordle) wits", width/2, 100); 
-  pop(); 
+  push();
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  textFont(bold_font);
+  text("the ultimate battle of (wordle) wits", width / 2, 100);
+  pop();
 
-  if (global_state == "await") {
+  if (global_state == "await" || global_state == "winner_declaration") {
     textFont(reg_font);
     textSize(16);
     textAlign(LEFT, TOP);
@@ -181,7 +184,7 @@ function ui() {
 
     let y = ly + 30;
 
-    fill (255); 
+    fill(255);
     for (let t = 0; t < human.attempts.length; t++) {
       let attempt = human.attempts[t];
 
@@ -250,10 +253,26 @@ function ui() {
 }
 
 //stages:
+function winner_declaration() {
+  push();
+  rectMode(CENTER, CENTER);
+  fill(255);
+  translate(width / 2, height / 2);
+  angleMode(DEGREES);
+  rotate(-10);
+  rect(0, 0, 800, 200);
+  textAlign(CENTER, CENTER);
+  fill(0); 
+  textSize(32); 
+  let loser = (from=="human")? "machine" : "human";   
+  text(from + " wins. " , 0, -10);
+  pop();
+}
+
 function generate() {
   human_to_guess = random(dict);
   // machine_to_guess = random(dict);
-  machine_to_guess = human_to_guess; 
+  machine_to_guess = human_to_guess;
 
   // console.log(human_to_guess, machine_to_guess);
 
