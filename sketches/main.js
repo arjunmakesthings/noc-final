@@ -1,7 +1,7 @@
 /*
-are you faster than a 1-byte-per-second computer? 
+can you beat a 1-byte-per-second computer? 
 
-a project by arjun & aram-pundak; april 2026. hand-programmed by arjun.
+a project by arjun & aram-pundak; april 2026. largely hand-programmed by arjun. 
 
 there are three actors in this game: 
 - human (player-a)
@@ -18,14 +18,16 @@ a thing i realized after a while is that p5.speech can't be instanced. there has
 
 another annoying thing that browsers do is force a click to play any sound or do any speech thing. so, to test individual stages, go to the mousePressed function and change state from there (otherwise the audio(s) won't play).  
 
+to communicate with physical-devices, we use an arduino zero & communicate via web-serial. the microcontroller is set up to read serial at 115200 baud, and do different i/o operations. these are the serial messages we send:
+
 idle        -> idle face
 smug        -> smug face
 sad         -> sad face
 win         -> win face
-slap_1_on   -> pin 12 HIGH
-slap_1_off  -> pin 12 LOW
-slap_2_on   -> pin 13 HIGH
-slap_2_off  -> pin 13 LOW
+slap_1_on   -> pin 12 high
+slap_1_off  -> pin 12 low
+slap_2_on   -> pin 13 high
+slap_2_off  -> pin 13 low
 */
 
 let human, machine, host, speaker; //actors.
@@ -418,10 +420,26 @@ function show_ready_btn() {
   ready_btn = createButton("ready.");
   ready_btn.position(width / 2 - 40, height / 2);
 
-  ready_btn.mousePressed(() => {
+  // what happens when player is ready
+  function start_game() {
+    if (!ready_btn) return;
+
     ready_btn.remove();
     ready_btn = null;
-    global_state = "await";
+    global_state = "generate";
+  }
+
+  // mouse click
+  ready_btn.mousePressed(start_game);
+
+  // keyboard enter
+  window.addEventListener("keydown", function ready_listener(e) {
+    if (e.key === "Enter" && ready_btn) {
+      start_game();
+
+      // cleanup listener after use
+      window.removeEventListener("keydown", ready_listener);
+    }
   });
 }
 
