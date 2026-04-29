@@ -34,6 +34,7 @@ let reg_font;
 let bold_font;
 
 let winner;
+let loser;
 
 function preload() {
   dict = loadJSON("./words.json");
@@ -126,6 +127,7 @@ function evaluate(guess, from) {
   if (correct === 5) {
     //all are correct.
     winner = from;
+    loser = from === "human" ? "machine" : "human";
     global_state = "winner_declaration";
   } else if (correct === dominant) {
     //more correct characters:
@@ -147,7 +149,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "winner_declaration";
+    global_state = "await";
     // connect_serial();
   }
 }
@@ -219,7 +221,7 @@ function ui() {
     let ry = 200;
 
     fill(190);
-    text("1-byte/second computer:", rx, ry);
+    text("1-byte/second machine:", rx, ry);
 
     let my = ry + 30;
 
@@ -267,8 +269,7 @@ function winner_declaration() {
   // fill(212,175,55);
   fill(207, 181, 59);
   textSize(95);
-  let loser = from == "human" ? "machine" : "human";
-  text(+ from + `won.\n suck it, human.`, 0, -10);
+  text(winner + ` won.\n suck it,` + loser + `.`, 0, -10);
   pop();
 }
 
