@@ -199,7 +199,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "await";
+    global_state = "welcome";
     connect_serial();
   }
 }
@@ -207,6 +207,10 @@ function mousePressed() {
 function keyPressed() {
   if (human.local_state === "thinking") {
     human.type(key);
+  }
+
+  if (key === " ") {
+    speaker.skip();
   }
 }
 
@@ -221,6 +225,14 @@ function ui() {
   textAlign(CENTER, CENTER);
   textFont(bold_font);
   text("the ultimate battle of (wordle) wits", width / 2, 100);
+  pop();
+
+  push();
+  fill (100); 
+  textSize(16);
+  textAlign(CENTER, CENTER);
+  textFont(reg_font);
+  text("press spacebar to skip dialogue.", width / 2, height-100);
   pop();
 
   if (global_state == "await" || global_state == "winner_declaration") {
@@ -678,6 +690,22 @@ class Speaker {
     this.currentCallback = done;
     this.isSpeaking = true;
     this.speech.speak(txt);
+  }
+
+  skip() {
+    if (!this.isSpeaking) return;
+
+    this.speech.cancel(); // stops current dialogue
+
+    this.isSpeaking = false;
+
+    // optionally run callback immediately
+    if (this.currentCallback) {
+      this.currentCallback();
+      this.currentCallback = null;
+    }
+
+    this.next(); // continue queue
   }
 }
 
