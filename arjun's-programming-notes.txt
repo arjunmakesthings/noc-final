@@ -1,0 +1,1 @@
+dialogues can't be in json because we use + from in evaluate. i'll have to account for that logic then. 
