@@ -199,7 +199,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "welcome";
+    global_state = "await";
     connect_serial();
   }
 }
@@ -241,7 +241,7 @@ function ui() {
     textAlign(LEFT, TOP);
 
     //human stuff:
-    let lx = 200;
+    let lx = 100;
     let ly = 200;
 
     fill(190);
@@ -278,7 +278,7 @@ function ui() {
     fill(255);
     text("> " + human.current, lx, y);
 
-    let rx = width / 2 + 400;
+    let rx = width / 2 + 300;
     let ry = 200;
 
     fill(190);
