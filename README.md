@@ -35,45 +35,19 @@ in this installation, aram & arjun invite you to go head-on with a barebones mac
 - 1x usb -> usb keyboard. 
 - 1x jbl-speaker, 3.5 -> 3.5 cable.
 
-
 ### system: 
-a p5.js sketch runs on a 'main' computer. this controls everything. 
+a p5.js sketch runs on a 'main' computer (mac-mini). this controls everything. 
 
-draw() loops every 1/60th of a second. so, it is used as a state-manager. stages are the following: 
+the arduino is flashed beforehand, and communicates via serial with p5. this controls the facial-expressions on the led-matrix & motors. 
 
+### file-structure:
+- /main 
+    - `main.js` is the script that controls everything, via a p5.js sketch. 
+    - `words.json` contains a list of all english words. 
+    - `index.html` is what is displayed on any browser. we also load the libraries here.
+    - `dialogues.json` contains all dialogues that are spoken from this system. this is done this way to have the option of variance for each dialogue (since stages are finite, but may be repeated). 
 
-
-
-
-
----
-
-### old; 2604: 
-
-made with aram pundak; april, 2026. 
-
----
-
-title: artificial 'intelligence', machine 'learning' & human 'pressure'. 
-description: 
+### algorithm: 
+arjun to write later. 
 
 ---
-# build notes: 
-
-### equipment / parts: 
-- two small computers docked on a station (computer-a & computer-b).
-- punching glove + mechanism next to computer-a.
-- projector projecting downwards on the floor.
-- 26 switches coming into an arduino-mega.
-- mac-mini connected to the arduino & projector, doing the computation.
-- arduino mega needs to be connected to both monitors too (and send some kind of output). 
-
-### basic flow:
-- computer-a makes up a random 5-letter word. asks computer-b to guess it. 
-- a person walks in space and presses keys with their legs. each key press has an audible reaction. 
-- key-presses are shown in front as they're typed. 
-- once 5 keys are pressed, the computer evaluates. 
-- results are shown, computer-a scolds & hits computer-b. their reaction faces change.
-- hints need to be given for the next one.
-
-
