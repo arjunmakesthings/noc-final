@@ -1,20 +1,43 @@
 {
-  "d_generate": [
-    "computer, guess this stupid word",
-    "hey you computer — guess the word i'm thinking of"
+  "thinking_synonyms": [
+    "accomplishing",
+    "actioning",
+    "baking",
+    "calculating",
+    "cerebrating",
+    "clauding",
+    "computing",
+    "considering",
+    "cooking",
+    "crafting",
+    "creating",
+    "crunching",
+    "deliberating",
+    "finagling",
+    "forging",
+    "forming",
+    "generating",
+    "hustling",
+    "ideating",
+    "inferring",
+    "manifesting",
+    "marinating",
+    "moseying",
+    "mulling",
+    "mustereding",
+    "musing",
+    "noodling",
+    "percolating",
+    "pondering",
+    "processing",
+    "ruminating",
+    "schlepping",
+    "shucking",
+    "simmering",
+    "synthesizing",
+    "thinking",
+    "vibing",
+    "working"
   ],
-  "d_await": [],
-  "d_evaluate": [],
-  "all_correct": ["ok ... now"],
-  "some_correct": [
-    "nooooo, try again",
-    "ugh no you idiot",
-    "god no",
-    "close but not quite"
-  ],
-  "all_wrong": [
-    "god you're so dumb",
-    "no you idiot",
-    "stupid shit work ... try again and do better"
-  ]
+  "stage":[]
 }

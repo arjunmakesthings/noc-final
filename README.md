@@ -51,3 +51,37 @@ the arduino is flashed beforehand, and communicates via serial with p5. this con
 arjun to write later. 
 
 ---
+
+### arjun's programming notes: 
+
+/*
+can you beat a 1-byte-per-second computer? 
+
+a project by arjun & aram-pundak; april 2026. largely hand-programmed by arjun. 
+
+there are three actors in this game: 
+- human (player-a)
+- machine (player-b)
+- host
+
+all three function independently. 
+
+there is a global state-machine for the whole game. states are: 
+welcome (t.a.) -> give word (t.a.) -> await (n.t.) -> declare result (n.t. to play again).
+* t.a is triggered automatically; while n.t. is needs trigger by actors.
+
+a thing i realized after a while is that p5.speech can't be instanced. there has to be a global speaker object. 
+
+another annoying thing that browsers do is force a click to play any sound or do any speech thing. so, to test individual stages, go to the mousePressed function and change state from there (otherwise the audio(s) won't play).  
+
+to communicate with physical-devices, we use an arduino zero & communicate via web-serial. the microcontroller is set up to read serial at 115200 baud, and do different i/o operations. these are the serial messages we send:
+
+idle        -> idle face
+smug        -> smug face
+sad         -> sad face
+win         -> win face
+slap_1_on   -> pin 12 high
+slap_1_off  -> pin 12 low
+slap_2_on   -> pin 13 high
+slap_2_off  -> pin 13 low
+*/

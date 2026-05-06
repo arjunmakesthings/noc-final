@@ -16,13 +16,11 @@ slap_2_off  -> pin 13 low
 let human, machine, host, speaker; //actors.
 
 let dict; //dictionary to store all words.
-// let human_to_guess, machine_to_guess;
-
-let dialogues;
+let human_to_guess, machine_to_guess;
 
 // // temp words for testing:
-let human_to_guess = "apple";
-let machine_to_guess = "apple";
+// let human_to_guess = "apple";
+// let machine_to_guess = "apple";
 
 let global_state = "begin"; //it has to be begin because everything in key pressed is wrapped inside this condition being true. to test a stage, change state in mousePressed() because chrome needs a user-activation for audio.
 
@@ -32,11 +30,51 @@ let bold_font;
 let winner;
 let loser;
 
+let thinking_synonyms = [
+  "accomplishing",
+  "actioning",
+  "baking",
+  "calculating",
+  "cerebrating",
+  "clauding",
+  "computing",
+  "considering",
+  "cooking",
+  "crafting",
+  "creating",
+  "crunching",
+  "deliberating",
+  "finagling",
+  "forging",
+  "forming",
+  "generating",
+  "hustling",
+  "ideating",
+  "inferring",
+  "manifesting",
+  "marinating",
+  "moseying",
+  "mulling",
+  "mustereding",
+  "musing",
+  "noodling",
+  "percolating",
+  "pondering",
+  "processing",
+  "ruminating",
+  "schlepping",
+  "shucking",
+  "simmering",
+  "synthesizing",
+  "thinking",
+  "vibing",
+  "working",
+];
+
 function preload() {
   dict = loadJSON("./words.json");
   reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
   bold_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
-  dialogues = loadJSON("./dialogues.json");
 }
 
 function setup() {
@@ -78,11 +116,10 @@ function draw() {
 }
 
 //global helpers:
-
+let word;
 function evaluate(guess, from) {
   let result = [];
 
-  let word;
   if (from == "human") {
     word = human_to_guess;
   } else if (from == "machine") {
@@ -174,7 +211,7 @@ function evaluate(guess, from) {
       } else if (from === "machine") {
         on_msg = "slap_1_on";
         off_msg = "slap_1_off";
-        send_serial("sad");
+        send_serial("sad")
       }
 
       // 🔥 immediate trigger (after speech ends)
@@ -199,7 +236,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "await";
+    global_state = "welcome";
     connect_serial();
   }
 }
@@ -308,7 +345,7 @@ function ui() {
 //stages:
 function winner_declaration() {
   speaker.say("host", winner + " won. suck it, " + loser, () => {
-    send_serial("win");
+    send_serial("win"); 
     noLoop();
   });
   push();
@@ -481,13 +518,13 @@ class Machine {
     // 1. THINKING PHASE (5 sec pause)
     // 1. THINKING PHASE (5 sec pause + animated dots)
     if (this.phase === "thinking") {
-      send_serial("idle");
+      send_serial("idle"); 
       if (this.timer === 0) {
         if (this.first_think) {
           this.thinking_synonym = "thinking";
           this.first_think = false;
         } else {
-          this.thinking_synonym = random(dialogues.thinking_synonyms);
+          this.thinking_synonym = random(thinking_synonyms);
         }
 
         speaker.say("machine", this.thinking_synonym);
