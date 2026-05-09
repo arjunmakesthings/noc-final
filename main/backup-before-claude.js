@@ -1,6 +1,6 @@
 /*
-can you beat a 1-byte-per-second computer?
-by arjun & aram-pundak; april 2026. largely hand-programmed by arjun.
+can you beat a 1-byte-per-second computer? 
+by arjun & aram-pundak; april 2026. largely hand-programmed by arjun. 
 
 arduino-states to reference:
 idle        -> idle face
@@ -32,64 +32,11 @@ let bold_font;
 let winner;
 let loser;
 
-/* dialogue mp3s. loaded in preload(). all under ../assets/dialogues/{host,machine}/.
-   pan: host -> left speaker, machine -> right speaker (handled in Speaker.next()).
-
-   host/{1,2,3}.mp3      = intro lines (welcome, fighters-ready, objective).
-   host/close_*.mp3      = guess-feedback lines. odd # = addressed to machine,
-                           even # = addressed to human. close_1..14 are positive
-                           ("close / almost"), close_15..30 are negative
-                           ("bad guess / wrong / etc."), close_25, 26 are skipped
-                           (errors), close_31, 32 are winner gloats.
-   machine/1.mp3         = "i'm ready, taking this human down".
-   machine/2..39.mp3     = thinking-line synonyms.
-*/
-let host_intro = [];
-let host_close_machine = [];
-let host_close_human = [];
-let host_bad_machine = [];
-let host_bad_human = [];
-let host_machine_won;
-let host_human_won;
-let machine_ready;
-let machine_thinking = [];
-
-let winner_announced = false; //one-shot guard for winner_declaration().
-
 function preload() {
   dict = loadJSON("./words.json");
   reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
   bold_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
   dialogues = loadJSON("./dialogues.json");
-
-  //host intros: 1, 2, 3 (0.mp3 is a test file, skipped).
-  for (let n of [1, 2, 3]) {
-    host_intro.push(loadSound(`../assets/dialogues/host/${n}.mp3`));
-  }
-
-  //host close-* lines. odd # = machine-addressed, even # = human-addressed.
-  for (let n of [1, 3, 5, 7, 9, 11, 13]) {
-    host_close_machine.push(loadSound(`../assets/dialogues/host/close_${n}.mp3`));
-  }
-  for (let n of [2, 4, 6, 8, 10, 12, 14]) {
-    host_close_human.push(loadSound(`../assets/dialogues/host/close_${n}.mp3`));
-  }
-  //close_15..30 are negative-feedback. close_25, 26 are error files - skipped.
-  for (let n of [15, 17, 19, 21, 23, 27, 29]) {
-    host_bad_machine.push(loadSound(`../assets/dialogues/host/close_${n}.mp3`));
-  }
-  for (let n of [16, 18, 20, 22, 24, 28, 30]) {
-    host_bad_human.push(loadSound(`../assets/dialogues/host/close_${n}.mp3`));
-  }
-  //winner gloats.
-  host_machine_won = loadSound("../assets/dialogues/host/close_31.mp3");
-  host_human_won   = loadSound("../assets/dialogues/host/close_32.mp3");
-
-  //machine: 1.mp3 = ready line, 2..39.mp3 = thinking-synonyms (0.mp3 skipped).
-  machine_ready = loadSound("../assets/dialogues/machine/1.mp3");
-  for (let i = 2; i <= 39; i++) {
-    machine_thinking.push(loadSound(`../assets/dialogues/machine/${i}.mp3`));
-  }
 }
 
 function setup() {
@@ -191,14 +138,32 @@ function evaluate(guess, from) {
 
     global_state = "winner_declaration";
   } else if (correct === dominant) {
-    //more correct characters: pick a random close-* line addressed to whoever guessed.
-    let pool_close = from === "machine" ? host_close_machine : host_close_human;
-    speaker.say("host", random(pool_close));
-  } else if (wrong_char === dominant) {
-    //just wrong position: pick a random bad-guess line addressed to whoever guessed.
-    let pool_bad = from === "machine" ? host_bad_machine : host_bad_human;
+    //more correct characters:
+    let close_dialogue = [
+      "ooh, the " + from + " is close!",
+      "ooh, the " + from + " is almost there!",
+      "the " + from + " is close!",
+      "the " + from + " is almost there!",
+      from + " is close to winning!",
+      from + " is getting there!",
+      from + " almost",
+    ];
 
-    speaker.say("host", random(pool_bad), () => {
+    speaker.say("host", random(close_dialogue));
+  } else if (wrong_char === dominant) {
+    //just wrong position:
+    let bad_dialogue = [
+      "nope " + from + "... bad guess",
+      from + " no, that's wrong",
+      "no" + from + "not quite",
+      "you" + from + "are not close",
+      "you" + from + "are so off",
+      "error wrong error error",
+      "lol ... stupid" + from,
+      from + "you are a monkey in a negligee",
+    ];
+
+    speaker.say("host", random(bad_dialogue), () => {
       let on_msg;
       let off_msg;
 
@@ -263,7 +228,7 @@ function ui() {
   pop();
 
   push();
-  fill (100);
+  fill (100); 
   textSize(16);
   textAlign(CENTER, CENTER);
   textFont(reg_font);
@@ -354,18 +319,10 @@ function ui() {
 
 //stages:
 function winner_declaration() {
-  // one-shot: this function is called every frame from draw() until noLoop()
-  // fires from the callback. without the guard we'd queue the gloat mp3 dozens
-  // of times before the first one even finishes.
-  if (!winner_announced) {
-    winner_announced = true;
-    let gloat = winner === "machine" ? host_machine_won : host_human_won;
-    speaker.say("host", gloat, () => {
-      send_serial("win");
-      noLoop();
-    });
-  }
-
+  speaker.say("host", winner + " won. suck it, " + loser, () => {
+    send_serial("win");
+    noLoop();
+  });
   push();
   // rectMode(CENTER, CENTER);
   // fill(255);
@@ -388,18 +345,29 @@ function generate() {
 
   // console.log(human_to_guess, machine_to_guess);
 
-  speaker.say("host", host_intro[2], () => {     //"the objective is to..."
-    global_state = "await";
-  });
+  speaker.say(
+    "host",
+    "the objective is to guess a randomly chosen 5-letter-english word. whoever guesses it correctly first wins / in other words, we're playing wordle. beware human — just like yourself, the machine see your input, and uses a genetic algorithm to learn from the guesses entered — .... 3 ... 2 ... 1 ... RUMBLE!",
+    () => {
+      global_state = "await";
+    },
+  );
   global_state = "null"; //prevent from looping. onEnd for the speech runs independently.
 }
 function welcome() {
-  speaker.say("host", host_intro[0]);     //"welcome to the itp show ..."
-  speaker.say("host", host_intro[1]);     //"fighters, are you ready?"
-  speaker.say("machine", machine_ready, () => {
-    send_serial("smug");
-    show_ready_btn();
-  });
+  speaker.say(
+    "host",
+    "welcome attendees of the i.t.p spring show ... we have been hearing that the world keeps debating — who is smarter: human-beings or computer-machines? ... today, we put that to the test and answer it once and for all ...//...,,, on my left ... we have a bare-bones machine ... capable of thinking only in one b.p.s ... byte per second ... and ...... on the right ... a meat-sack who supposedly thinks that they are 'smart' ...  we'll see today.",
+  );
+  speaker.say("host", "fighters ... are you ready?");
+  speaker.say(
+    "machine",
+    "i'm ready ... and i'm going to take this human down.",
+    () => {
+      send_serial("smug");
+      show_ready_btn();
+    },
+  );
 
   global_state = "null";
 }
@@ -534,9 +502,7 @@ class Machine {
           this.thinking_synonym = random(dialogues.thinking_synonyms);
         }
 
-        //audio = a random machine_thinking mp3. on-screen text stays the
-        //old text-based synonym (independent visual cue).
-        speaker.say("machine", random(machine_thinking));
+        speaker.say("machine", this.thinking_synonym);
 
         this.timer = millis();
         this.thinkFrame = 0;
@@ -668,82 +634,88 @@ class Host {
 }
 
 /*
-Speaker: queues p5.SoundFile playbacks, panning host -> left and machine -> right.
+p5.speech does this annoying thing where it can't make instances of the speech object. so, we have to deal with a global speaker. 
 
-usage:
-  speaker.say("host",    host_intro[0]);
-  speaker.say("machine", machine_ready, () => { ...callback when it ends... });
-  speaker.skip();   // stops the current line + advances the queue.
+furthermore, inside a function, we can only have one .onEnd callback. so, to get around that, i asked chatgpt to make a queue system; with the option of a callback (so that i can do a state change). 
 
-`sound` should be a p5.SoundFile (loaded in preload via loadSound()).
-the queue lets us serialise lines + run a state-change in onended.
+usage: 
+function welcome() {
+  speaker.say("host", "welcome");
+  speaker.say("machine", "i'm ready. are you?");
+  speaker.say("host", "let's begin", () => {
+    global_state = "generate"; // 🔑 state change happens here
+  });
+  global_state = "null";
+}
 */
+
 class Speaker {
   constructor() {
+    this.speech = new p5.Speech();
     this.queue = [];
-    this.is_playing = false;
-    this.current_sound = null;
-    this.current_callback = null;
-    this.advanced = false; //guards against skip() + onended both firing advance().
+    this.isSpeaking = false;
+    this.currentCallback = null;
+
+    this.speech.onEnd = () => {
+      this.isSpeaking = false;
+
+      if (this.currentCallback) {
+        this.currentCallback();
+        this.currentCallback = null;
+      }
+
+      this.next();
+    };
   }
 
-  say(who, sound, done = null) {
-    this.queue.push({ who, sound, done });
+  say(who, txt, done = null) {
+    this.queue.push({ who, txt, done });
     this.next();
   }
 
   next() {
-    if (this.is_playing || this.queue.length === 0) return;
+    if (this.isSpeaking || this.queue.length === 0) return;
 
-    let { who, sound, done } = this.queue.shift();
+    let { who, txt, done } = this.queue.shift();
 
-    //missing or unloaded sound -> skip but still fire the callback so the
-    //game's state-machine doesn't stall.
-    if (!sound || typeof sound.play !== "function") {
-      console.warn("speaker: missing sound, skipping", who);
-      if (done) done();
-      this.next();
-      return;
+    if (who == "host") {
+      this.speech.setVoice("Grandpa (English (United Kingdom))");
+      this.speech.setRate(0.9);
+    } else if (who == "machine") {
+      this.speech.setVoice("Boing");
+      this.speech.setRate(1.2);
+      this.speech.setPitch(1.3);
     }
 
-    sound.pan(who === "host" ? -1 : 1);
-
-    this.current_sound = sound;
-    this.current_callback = done;
-    this.is_playing = true;
-    this.advanced = false;
-
-    sound.onended(() => this.advance());
-    sound.play();
-  }
-
-  advance() {
-    if (this.advanced) return;
-    this.advanced = true;
-    this.is_playing = false;
-    let cb = this.current_callback;
-    this.current_sound = null;
-    this.current_callback = null;
-    if (cb) cb();
-    this.next();
+    this.currentCallback = done;
+    this.isSpeaking = true;
+    this.speech.speak(txt);
   }
 
   skip() {
-    if (!this.is_playing) return;
-    if (this.current_sound && this.current_sound.isPlaying()) {
-      this.current_sound.stop();
+    if (!this.isSpeaking) return;
+
+    this.speech.cancel(); // stops current dialogue
+
+    this.isSpeaking = false;
+
+    // optionally run callback immediately
+    if (this.currentCallback) {
+      this.currentCallback();
+      this.currentCallback = null;
     }
-    this.advance();
+
+    this.next(); // continue queue
   }
 }
 
 /*
- serial stuff; written by aram's claude.
+ serial stuff; written by aram's claude. 
 
- usage:
- call connect_serial() once from a click / keypress handler. we do this when we do userStartAudio.
+ usage: 
+ call connect_serial() once from a click / keypress handler. we do this when we do userStartAudio. 
 
- send_serial() with character "x" will send "x\n" to the arduino. we use this to change every physical peripheral — the arduino is set up to read serial at 115200 baud.
+ send_serial() with character "x" will send "x\n" to the arduino. we use this to change every physical peripheral — the arduino is set up to read serial at 115200 baud. 
 */
 
 let serial_port = null;
