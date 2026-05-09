@@ -357,7 +357,7 @@ function generate() {
 function welcome() {
   speaker.say(
     "host",
-    "welcome viewers from this special nature of code class. we have been hearing that the world keeps debating — who is smarter: human-beings or computer-machines? ... today, we put that to the test and answer it once and for all ...//...,,, on my left ... we have a bare-bones machine ... capable of thinking only in one b.p.s ... byte per second ... and ...... on the right ... a meat-sack who supposedly thinks that they are 'smart' ...  we'll see today.",
+    "welcome attendees of the i.t.p spring show ... we have been hearing that the world keeps debating — who is smarter: human-beings or computer-machines? ... today, we put that to the test and answer it once and for all ...//...,,, on my left ... we have a bare-bones machine ... capable of thinking only in one b.p.s ... byte per second ... and ...... on the right ... a meat-sack who supposedly thinks that they are 'smart' ...  we'll see today.",
   );
   speaker.say("host", "fighters ... are you ready?");
   speaker.say(

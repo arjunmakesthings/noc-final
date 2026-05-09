@@ -225,11 +225,6 @@ function setup() {
 function draw() {
   background(0);
 
-  speaker.say(
-    "we are basically playing wordle. the objective is to guess a 5-letter-english word. ",
-    "Bad News",
-  );
-
   // if (frameCount % 60 == 0) {
   //   tog = !tog;
   //   if (tog == true) {
@@ -242,6 +237,9 @@ function draw() {
 
 function mousePressed() {
   userStartAudio();
+
+  speaker.say("tester bruh. ", "Boing");
+  speaker.speech.pan(-1); 
 }
 
 class Speaker {
@@ -250,7 +248,7 @@ class Speaker {
   }
   say(txt, voice) {
     this.speech.setVoice(voice);
-    this.speech.setRate(1.5); 
+    this.speech.setRate(1.5);
     this.speech.speak(txt);
   }
 }

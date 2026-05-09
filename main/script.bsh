@@ -1,0 +1,17 @@
+# inside the directory where you want to save:
+
+#host: 
+
+say -v "Grandpa" -r 160 -o host.caf "human won ... suck it, machine."
+ffmpeg -i host.caf close_32.mp3
+rm host.caf
+
+the objective is to guess a randomly chosen 5 letter english word. whoever guesses it correctly first wins / in other words, we're playing wordle. beware human — just like yourself, the machine see your input, and uses a genetic algorithm to learn from the guesses entered — .... 3 ... 2 ... 1 ... RUMBLE!
+
+# machine: 
+
+say -v "Boing" -r 160 -o machine.caf "working"
+ffmpeg -y -i machine.caf \
+-filter:a "asetrate=44100*0.55,aresample=44100" \
+39.mp3
+rm machine.caf
