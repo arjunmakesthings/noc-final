@@ -185,8 +185,10 @@ function evaluate(guess, from) {
     if (winner === "human") {
       //we slap the machine.
       send_serial("slap_1_on");
+      setTimeout(() => send_serial("slap_1_off"), 3000);
     } else if (winner === "machine") {
       send_serial("slap_2_on");
+      setTimeout(() => send_serial("slap_2_off"), 3000);
     }
 
     global_state = "winner_declaration";
@@ -240,6 +242,18 @@ function mousePressed() {
 }
 
 function keyPressed() {
+  if (keyCode === ENTER) {
+    if (show_start_prompt) {
+      show_start_prompt = false;
+      global_state = "generate";
+      return;
+    }
+    if (global_state === "winner_declaration") {
+      restart_game();
+      return;
+    }
+  }
+
   if (human.local_state === "thinking") {
     human.type(key);
   }
@@ -247,6 +261,22 @@ function keyPressed() {
   if (key === " ") {
     speaker.skip();
   }
+}
+
+function restart_game() {
+  //full reset. pick new words and jump straight to await — like generate()
+  //but without the host intro speech.
+  global_state = "null";        //freeze state-machine while we tear things down.
+  speaker.reset();              //drop the gloat (and any queued lines) cleanly.
+  human = new Human();
+  machine = new Machine();
+  winner = null;
+  loser = null;
+  winner_announced = false;
+  send_serial("idle");
+  human_to_guess = random(dict);
+  machine_to_guess = human_to_guess;
+  global_state = "await";
 }
 
 function ui() {
@@ -263,12 +293,26 @@ function ui() {
   pop();
 
   push();
-  fill (100);
+  fill(100);
   textSize(16);
   textAlign(CENTER, CENTER);
   textFont(reg_font);
-  text("press spacebar to skip dialogue.", width / 2, height-100);
+  let hint =
+    global_state === "winner_declaration"
+      ? "press enter to restart."
+      : "press spacebar to skip dialogue.";
+  text(hint, width / 2, height - 100);
   pop();
+
+  if (show_start_prompt) {
+    push();
+    fill(255);
+    textSize(32);
+    textAlign(CENTER, CENTER);
+    textFont(bold_font);
+    text("press enter to start.", width / 2, height / 2);
+    pop();
+  }
 
   if (global_state == "await" || global_state == "winner_declaration") {
     textFont(reg_font);
@@ -362,7 +406,6 @@ function winner_declaration() {
     let gloat = winner === "machine" ? host_machine_won : host_human_won;
     speaker.say("host", gloat, () => {
       send_serial("win");
-      noLoop();
     });
   }
 
@@ -403,34 +446,9 @@ function welcome() {
 
   global_state = "null";
 }
-let ready_btn;
+let show_start_prompt = false;
 function show_ready_btn() {
-  if (ready_btn) return;
-
-  ready_btn = createButton("ready.");
-  ready_btn.position(width / 2 - 40, height / 2);
-
-  // what happens when player is ready
-  function start_game() {
-    if (!ready_btn) return;
-
-    ready_btn.remove();
-    ready_btn = null;
-    global_state = "generate";
-  }
-
-  // mouse click
-  ready_btn.mousePressed(start_game);
-
-  // keyboard enter
-  window.addEventListener("keydown", function ready_listener(e) {
-    if (e.key === "Enter" && ready_btn) {
-      start_game();
-
-      // cleanup listener after use
-      window.removeEventListener("keydown", ready_listener);
-    }
-  });
+  show_start_prompt = true;
 }
 
 /* actors */
@@ -527,16 +545,17 @@ class Machine {
     if (this.phase === "thinking") {
       send_serial("idle");
       if (this.timer === 0) {
+        //machine_thinking[i] audio matches dialogues.thinking_synonyms[i] text
+        //(both arrays are aligned: 2.mp3 = "accomplishing", 3.mp3 = "actioning", ...).
+        let idx;
         if (this.first_think) {
-          this.thinking_synonym = "thinking";
+          idx = dialogues.thinking_synonyms.indexOf("thinking");
           this.first_think = false;
         } else {
-          this.thinking_synonym = random(dialogues.thinking_synonyms);
+          idx = Math.floor(Math.random() * machine_thinking.length);
         }
-
-        //audio = a random machine_thinking mp3. on-screen text stays the
-        //old text-based synonym (independent visual cue).
-        speaker.say("machine", random(machine_thinking));
+        this.thinking_synonym = dialogues.thinking_synonyms[idx];
+        speaker.say("machine", machine_thinking[idx]);
 
         this.timer = millis();
         this.thinkFrame = 0;
@@ -735,6 +754,21 @@ class Speaker {
     }
     this.advance();
   }
+
+  //hard reset: drop the queue and silence the current line WITHOUT firing
+  //its onended callback. used on restart so a still-playing winner gloat
+  //can't call noLoop() after we've already re-enabled the loop.
+  reset() {
+    if (this.current_sound) {
+      this.current_sound.onended(() => {});  //detach handler.
+      if (this.current_sound.isPlaying()) this.current_sound.stop();
+    }
+    this.queue = [];
+    this.is_playing = false;
+    this.current_sound = null;
+    this.current_callback = null;
+    this.advanced = false;
+  }
 }
 
 /*
@@ -752,7 +786,10 @@ let serial_writer = null;
 async function connect_serial() {
   if (serial_writer || !("serial" in navigator)) return;
   try {
-    serial_port = await navigator.serial.requestPort();
+    //reuse previously authorized port (EDBG CMSIS-DAP) without re-prompting.
+    //first time the user must pick it; chrome remembers it for the origin after that.
+    let ports = await navigator.serial.getPorts();
+    serial_port = ports[0] || (await navigator.serial.requestPort());
     await serial_port.open({ baudRate: 115200 });
     serial_writer = serial_port.writable.getWriter();
     console.log("serial: connected");
