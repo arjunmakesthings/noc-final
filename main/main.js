@@ -85,7 +85,7 @@ function preload() {
   }
   //winner gloats.
   host_machine_won = loadSound("../assets/dialogues/host/close_31.mp3");
-  host_human_won   = loadSound("../assets/dialogues/host/close_32.mp3");
+  host_human_won = loadSound("../assets/dialogues/host/close_32.mp3");
 
   //machine: 1.mp3 = ready line, 2..39.mp3 = thinking-synonyms (0.mp3 skipped).
   machine_ready = loadSound("../assets/dialogues/machine/1.mp3");
@@ -131,7 +131,7 @@ function draw() {
     winner_declaration();
   }
 
-  if (cursor_hide){
+  if (cursor_hide) {
     noCursor();
   }
 }
@@ -298,13 +298,11 @@ function ui() {
   textFont(bold_font);
   text("the ultimate battle of (wordle) wits", width / 2, 100);
 
-  textSize (14); 
-  fill (190); 
+  textSize(14);
+  fill(190);
   textFont(reg_font);
-  text("a project by aram & arjun; april, 2026.", width / 2, height-30);
 
-  
-  text ("grey letters are wrong, yellow are right but in the wrong position, and green are correct.", width / 2, 140);
+  text("grey -> wrong; yellow -> right but in the wrong position; green -> correct.", width / 2, 140);
   pop();
 
   push();
@@ -316,7 +314,15 @@ function ui() {
     global_state === "winner_declaration"
       ? "press enter to restart."
       : "press spacebar to skip dialogue.";
-  text(hint, width / 2, height - 100);
+  text(hint, width / 2, height - 200);
+  pop();
+
+  push();
+  textAlign(RIGHT, BOTTOM); 
+  textSize(12);
+  fill(100);
+  textFont(reg_font);
+  text("a project by aram & arjun; april, 2026.", width-20, height - 30);
   pop();
 
   if (show_start_prompt) {
@@ -698,7 +704,7 @@ class Machine {
 }
 
 class Host {
-  constructor() {}
+  constructor() { }
 }
 
 /*
@@ -775,7 +781,7 @@ class Speaker {
   //can't call noLoop() after we've already re-enabled the loop.
   reset() {
     if (this.current_sound) {
-      this.current_sound.onended(() => {});  //detach handler.
+      this.current_sound.onended(() => { });  //detach handler.
       if (this.current_sound.isPlaying()) this.current_sound.stop();
     }
     this.queue = [];
