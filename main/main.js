@@ -297,10 +297,14 @@ function ui() {
   textAlign(CENTER, CENTER);
   textFont(bold_font);
   text("the ultimate battle of (wordle) wits", width / 2, 100);
-  textSize (10); 
-  fill (100); 
+
+  textSize (14); 
+  fill (190); 
   textFont(reg_font);
-  text("a project by aram & arjun; april, 2026.", width / 2, 135);
+  text("a project by aram & arjun; april, 2026.", width / 2, height-30);
+
+  
+  text ("grey letters are wrong, yellow are right but in the wrong position, and green are correct.", width / 2, 140);
   pop();
 
   push();
