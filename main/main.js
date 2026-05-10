@@ -286,7 +286,7 @@ function ui() {
   fill(255);
 
   push();
-  textSize(32);
+  textSize(34);
   textAlign(CENTER, CENTER);
   textFont(bold_font);
   text("the ultimate battle of (wordle) wits", width / 2, 100);
@@ -294,7 +294,7 @@ function ui() {
 
   push();
   fill(100);
-  textSize(16);
+  textSize(18);
   textAlign(CENTER, CENTER);
   textFont(reg_font);
   let hint =
@@ -307,7 +307,7 @@ function ui() {
   if (show_start_prompt) {
     push();
     fill(255);
-    textSize(32);
+    textSize(18);
     textAlign(CENTER, CENTER);
     textFont(bold_font);
     text("press enter to start.", width / 2, height / 2);
@@ -316,7 +316,7 @@ function ui() {
 
   if (global_state == "await" || global_state == "winner_declaration") {
     textFont(reg_font);
-    textSize(16);
+    textSize(18);
     textAlign(LEFT, TOP);
 
     //human stuff:
