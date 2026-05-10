@@ -61,7 +61,7 @@ let cursor_hide = false;
 function preload() {
   dict = loadJSON("./words.json");
   reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
-  bold_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
+  bold_font = loadFont("../assets/fonts/JetBrainsMonoNL-SemiBold.ttf");
   dialogues = loadJSON("./dialogues.json");
 
   //host intros: 1, 2, 3 (0.mp3 is a test file, skipped).
@@ -297,6 +297,10 @@ function ui() {
   textAlign(CENTER, CENTER);
   textFont(bold_font);
   text("the ultimate battle of (wordle) wits", width / 2, 100);
+  textSize (10); 
+  fill (100); 
+  textFont(reg_font);
+  text("a project by aram & arjun; april, 2026.", width / 2, 135);
   pop();
 
   push();
