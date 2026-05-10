@@ -357,7 +357,7 @@ function ui() {
     fill(255);
     text("> " + human.current, lx, y);
 
-    let rx = width / 2 + 300;
+    let rx = width / 2 + 200;
     let ry = 200;
 
     fill(190);
