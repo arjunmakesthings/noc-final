@@ -16,13 +16,13 @@ slap_2_off  -> pin 13 low
 let human, machine, host, speaker; //actors.
 
 let dict; //dictionary to store all words.
-// let human_to_guess, machine_to_guess;
+let human_to_guess, machine_to_guess;
 
 let dialogues;
 
 // // temp words for testing:
-let human_to_guess = "apple";
-let machine_to_guess = "apple";
+// let human_to_guess = "apple";
+// let machine_to_guess = "apple";
 
 let global_state = "begin"; //it has to be begin because everything in key pressed is wrapped inside this condition being true. to test a stage, change state in mousePressed() because chrome needs a user-activation for audio.
 
@@ -236,7 +236,7 @@ function evaluate(guess, from) {
 function mousePressed() {
   if (global_state === "begin") {
     userStartAudio();
-    global_state = "await";
+    global_state = "welcome";
     connect_serial();
   }
 }
