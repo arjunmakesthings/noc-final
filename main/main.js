@@ -56,6 +56,8 @@ let machine_thinking = [];
 
 let winner_announced = false; //one-shot guard for winner_declaration().
 
+let cursor_hide = false;
+
 function preload() {
   dict = loadJSON("./words.json");
   reg_font = loadFont("../assets/fonts/JetBrainsMonoNL-Regular.ttf");
@@ -127,6 +129,10 @@ function draw() {
 
   if (global_state == "winner_declaration") {
     winner_declaration();
+  }
+
+  if (cursor_hide){
+    noCursor();
   }
 }
 
@@ -238,6 +244,7 @@ function mousePressed() {
     userStartAudio();
     global_state = "welcome";
     connect_serial();
+    cursor_hide = true;
   }
 }
 
